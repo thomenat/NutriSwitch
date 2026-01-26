@@ -22,6 +22,11 @@ type SwapTarget = {
   itemIndex: number;
 };
 
+type ExpandedRecipe = {
+  mealId: string;
+  recipeIndex: number;
+};
+
 export function PlanClient(props: {
   ingredients: Ingredient[];
   initialMeals: Meal[];
@@ -32,6 +37,7 @@ export function PlanClient(props: {
   );
 
   const [meals, setMeals] = useState<Meal[]>(props.initialMeals);
+  const [expanded, setExpanded] = useState<ExpandedRecipe | null>(null);
   const [swapTarget, setSwapTarget] = useState<SwapTarget | null>(null);
   const [swapToIngredientId, setSwapToIngredientId] = useState<string>("");
   const [preserve, setPreserve] = useState<PreserveMetric>("calories");
@@ -95,6 +101,13 @@ export function PlanClient(props: {
     setSwapTarget(null);
   }
 
+  function toggleRecipe(mealId: string, recipeIndex: number) {
+    setExpanded((prev) => {
+      if (prev && prev.mealId === mealId && prev.recipeIndex === recipeIndex) return null;
+      return { mealId, recipeIndex };
+    });
+  }
+
   return (
     <div className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 px-6 py-10">
       <header className="flex flex-col gap-3">
@@ -130,94 +143,139 @@ export function PlanClient(props: {
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-col gap-5">
-                {meal.recipes.map((recipe, recipeIndex) => {
-                  const recipeTotals = recipeTotalsFor(recipe, ingredientsById);
-                  return (
-                    <div
-                      key={recipe.id}
-                      className="ns-blob overflow-hidden rounded-[22px] border border-[color:var(--border)] bg-[var(--surface)]"
-                    >
-                      <div className="flex flex-col gap-1 border-b border-[color:var(--border)] px-4 py-3 sm:flex-row sm:items-end sm:justify-between">
-                        <div className="flex items-start gap-3">
-                          <div className="h-12 w-12 overflow-hidden rounded-[16px] border border-[color:var(--border)] bg-[var(--surface-2)]">
-                            <img
-                              src={recipe.imageSrc}
-                              alt={recipe.imageAlt}
-                              className="h-full w-full object-cover"
-                              loading="lazy"
-                            />
+              <div className="mt-5">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {meal.recipes.map((recipe, recipeIndex) => {
+                    const isExpanded =
+                      expanded?.mealId === meal.id && expanded.recipeIndex === recipeIndex;
+
+                    return (
+                      <div
+                        key={recipe.id}
+                        className={clsx(
+                          "ns-blob overflow-hidden rounded-[22px] border border-[color:var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)]",
+                          isExpanded && "col-span-2 sm:col-span-3",
+                        )}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleRecipe(meal.id, recipeIndex)}
+                          className={clsx(
+                            "group relative block w-full text-left",
+                            isExpanded ? "h-56 sm:h-64" : "aspect-square",
+                          )}
+                          aria-expanded={isExpanded}
+                        >
+                          <img
+                            src={recipe.imageSrc}
+                            alt={recipe.imageAlt}
+                            className="absolute inset-0 h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                          {/* subtle overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/0 to-black/0 opacity-70 transition-opacity group-hover:opacity-80" />
+
+                          {/* accessible name (visually hidden to keep “image-only”) */}
+                          <span className="sr-only">{recipe.name}</span>
+
+                          {/* small affordance */}
+                          <div className="absolute bottom-3 left-3 inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-zinc-900">
+                            {isExpanded ? "Close" : "Open"}
+                            <span aria-hidden="true">{isExpanded ? "▴" : "▾"}</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-semibold text-zinc-900">{recipe.name}</h3>
-                            <span className="ns-chip bg-[var(--surface-2)] text-[11px] font-semibold">
-                              Recipe
-                            </span>
+                        </button>
+
+                        {isExpanded && (
+                          <div className="border-t border-[color:var(--border)] p-4">
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center justify-between gap-3">
+                                <h3 className="text-base font-semibold text-zinc-900">
+                                  {recipe.name}
+                                </h3>
+                                <span className="ns-chip bg-[var(--surface-2)] text-[11px] font-semibold">
+                                  Tap ingredients to swap
+                                </span>
+                              </div>
+                              <p className="ns-muted text-sm">
+                                Missing something? Swap an ingredient and the app recalculates the
+                                quantity.
+                              </p>
+                            </div>
+
+                            <div className="mt-3 overflow-x-auto">
+                              <table className="w-full min-w-[720px] border-separate border-spacing-y-2 text-sm">
+                                <thead className="text-left ns-muted">
+                                  <tr>
+                                    <th className="px-3">Ingredient</th>
+                                    <th className="px-3">Grams</th>
+                                    <th className="px-3">kcal</th>
+                                    <th className="px-3">P</th>
+                                    <th className="px-3">C</th>
+                                    <th className="px-3">F</th>
+                                    <th className="px-3">Swap</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {recipe.items.map((item, itemIndex) => {
+                                    const ingredient = ingredientsById.get(item.ingredientId);
+                                    if (!ingredient) return null;
+                                    const line = scaleMacros(
+                                      ingredient.macrosPer100g,
+                                      item.grams,
+                                    );
+
+                                    return (
+                                      <tr
+                                        key={`${meal.id}:${recipe.id}:${itemIndex}`}
+                                        className="rounded-lg bg-[color:var(--surface-2)]"
+                                      >
+                                        <td className="px-3 py-3 font-medium text-zinc-900">
+                                          {ingredient.name}
+                                        </td>
+                                        <td className="px-3 py-3">{fmt0(item.grams)} g</td>
+                                        <td className="px-3 py-3">{fmt0(line.calories)}</td>
+                                        <td className="px-3 py-3">{fmt1(line.protein)}</td>
+                                        <td className="px-3 py-3">{fmt1(line.carbs)}</td>
+                                        <td className="px-3 py-3">{fmt1(line.fat)}</td>
+                                        <td className="px-3 py-3">
+                                          <button
+                                            className="ns-btn ns-btn-dark h-9 px-3 text-sm"
+                                            onClick={() =>
+                                              openSwapModal({
+                                                mealId: meal.id,
+                                                recipeIndex,
+                                                itemIndex,
+                                              })
+                                            }
+                                          >
+                                            Swap…
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            <div className="mt-3 rounded-[16px] border border-[color:var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm">
+                              {(() => {
+                                const recipeTotals = recipeTotalsFor(recipe, ingredientsById);
+                                return (
+                                  <div className="ns-muted">
+                                    Recipe total: {fmt0(recipeTotals.calories)} kcal · P{" "}
+                                    {fmt1(recipeTotals.protein)}g · C {fmt1(recipeTotals.carbs)}g ·
+                                    F {fmt1(recipeTotals.fat)}g
+                                  </div>
+                                );
+                              })()}
+                            </div>
                           </div>
-                          <p className="ns-muted text-xs">
-                            Recipe total: {fmt0(recipeTotals.calories)} kcal · P{" "}
-                            {fmt1(recipeTotals.protein)}g · C {fmt1(recipeTotals.carbs)}g · F{" "}
-                            {fmt1(recipeTotals.fat)}g
-                          </p>
-                        </div>
+                        )}
                       </div>
-
-                      <div className="overflow-x-auto">
-                        <table className="w-full min-w-[720px] border-separate border-spacing-y-2 px-2 py-2 text-sm">
-                          <thead className="text-left ns-muted">
-                            <tr>
-                              <th className="px-3">Ingredient</th>
-                              <th className="px-3">Grams</th>
-                              <th className="px-3">kcal</th>
-                              <th className="px-3">P</th>
-                              <th className="px-3">C</th>
-                              <th className="px-3">F</th>
-                              <th className="px-3">Swap</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {recipe.items.map((item, itemIndex) => {
-                              const ingredient = ingredientsById.get(item.ingredientId);
-                              if (!ingredient) return null;
-
-                              const line = scaleMacros(ingredient.macrosPer100g, item.grams);
-
-                              return (
-                                <tr
-                                  key={`${meal.id}:${recipe.id}:${itemIndex}`}
-                                  className="rounded-lg bg-[color:var(--surface-2)]"
-                                >
-                                  <td className="px-3 py-3 font-medium text-zinc-900">
-                                    {ingredient.name}
-                                  </td>
-                                  <td className="px-3 py-3">{fmt0(item.grams)} g</td>
-                                  <td className="px-3 py-3">{fmt0(line.calories)}</td>
-                                  <td className="px-3 py-3">{fmt1(line.protein)}</td>
-                                  <td className="px-3 py-3">{fmt1(line.carbs)}</td>
-                                  <td className="px-3 py-3">{fmt1(line.fat)}</td>
-                                  <td className="px-3 py-3">
-                                    <button
-                                      className="ns-btn ns-btn-dark h-9 px-3 text-sm"
-                                      onClick={() =>
-                                        openSwapModal({
-                                          mealId: meal.id,
-                                          recipeIndex,
-                                          itemIndex,
-                                        })
-                                      }
-                                    >
-                                      Swap…
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </section>
           );
