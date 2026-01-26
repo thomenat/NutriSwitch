@@ -26,11 +26,14 @@ export default async function SharePlanPage(props: {
   const day1 = DEMO_PLAN.days[0];
 
   return (
-    <main className="bg-zinc-100">
+    <main>
       <div className="mx-auto max-w-4xl px-6 pt-8">
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm text-zinc-700">
-          <div className="font-medium text-zinc-900">Patient view</div>
-          <div className="mt-1">
+        <div className="ns-card p-4 text-sm text-zinc-700">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[var(--accent-pink)]" />
+            <div className="font-semibold text-zinc-900">Patient view</div>
+          </div>
+          <div className="ns-muted mt-1">
             This plan was shared by your nutritionist. You can swap ingredients and preview
             updated quantities before confirming.
           </div>

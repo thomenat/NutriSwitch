@@ -96,10 +96,14 @@ export function PlanClient(props: {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 px-6 py-10">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Demo plan</h1>
-        <p className="text-sm text-zinc-600">
+    <div className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 px-6 py-10">
+      <header className="flex flex-col gap-3">
+        <div className="inline-flex w-fit items-center gap-2 ns-chip text-xs font-semibold">
+          <span className="h-2 w-2 rounded-full bg-[var(--accent-mint)]" />
+          Patient view (interactive)
+        </div>
+        <h1 className="text-3xl font-semibold tracking-tight">Demo plan</h1>
+        <p className="ns-muted text-sm">
           Swap an ingredient and we’ll recalculate grams to preserve a chosen metric
           (default: calories).
         </p>
@@ -111,12 +115,15 @@ export function PlanClient(props: {
           return (
             <section
               key={meal.id}
-              className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm"
+              className="ns-card ns-blob p-5"
             >
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold">{meal.name}</h2>
-                  <p className="text-sm text-zinc-600">
+                  <div className="inline-flex items-center gap-2">
+                    <h2 className="text-lg font-semibold">{meal.name}</h2>
+                    <span className="ns-chip text-[11px] font-semibold">Meal</span>
+                  </div>
+                  <p className="ns-muted text-sm">
                     Total: {fmt0(totals.calories)} kcal · P {fmt1(totals.protein)}g ·
                     C {fmt1(totals.carbs)}g · F {fmt1(totals.fat)}g
                   </p>
@@ -127,11 +134,27 @@ export function PlanClient(props: {
                 {meal.recipes.map((recipe, recipeIndex) => {
                   const recipeTotals = recipeTotalsFor(recipe, ingredientsById);
                   return (
-                    <div key={recipe.id} className="rounded-xl border border-zinc-200 bg-white">
-                      <div className="flex flex-col gap-1 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                          <h3 className="text-sm font-semibold text-zinc-900">{recipe.name}</h3>
-                          <p className="text-xs text-zinc-600">
+                    <div
+                      key={recipe.id}
+                      className="ns-blob overflow-hidden rounded-[22px] border border-[color:var(--border)] bg-[var(--surface)]"
+                    >
+                      <div className="flex flex-col gap-1 border-b border-[color:var(--border)] px-4 py-3 sm:flex-row sm:items-end sm:justify-between">
+                        <div className="flex items-start gap-3">
+                          <div className="h-12 w-12 overflow-hidden rounded-[16px] border border-[color:var(--border)] bg-[var(--surface-2)]">
+                            <img
+                              src={recipe.imageSrc}
+                              alt={recipe.imageAlt}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-semibold text-zinc-900">{recipe.name}</h3>
+                            <span className="ns-chip bg-[var(--surface-2)] text-[11px] font-semibold">
+                              Recipe
+                            </span>
+                          </div>
+                          <p className="ns-muted text-xs">
                             Recipe total: {fmt0(recipeTotals.calories)} kcal · P{" "}
                             {fmt1(recipeTotals.protein)}g · C {fmt1(recipeTotals.carbs)}g · F{" "}
                             {fmt1(recipeTotals.fat)}g
@@ -141,7 +164,7 @@ export function PlanClient(props: {
 
                       <div className="overflow-x-auto">
                         <table className="w-full min-w-[720px] border-separate border-spacing-y-2 px-2 py-2 text-sm">
-                          <thead className="text-left text-zinc-600">
+                          <thead className="text-left ns-muted">
                             <tr>
                               <th className="px-3">Ingredient</th>
                               <th className="px-3">Grams</th>
@@ -162,7 +185,7 @@ export function PlanClient(props: {
                               return (
                                 <tr
                                   key={`${meal.id}:${recipe.id}:${itemIndex}`}
-                                  className="rounded-lg bg-zinc-50"
+                                  className="rounded-lg bg-[color:var(--surface-2)]"
                                 >
                                   <td className="px-3 py-3 font-medium text-zinc-900">
                                     {ingredient.name}
@@ -174,7 +197,7 @@ export function PlanClient(props: {
                                   <td className="px-3 py-3">{fmt1(line.fat)}</td>
                                   <td className="px-3 py-3">
                                     <button
-                                      className="h-9 rounded-md bg-zinc-900 px-3 font-medium text-white hover:bg-zinc-800"
+                                      className="ns-btn ns-btn-dark h-9 px-3 text-sm"
                                       onClick={() =>
                                         openSwapModal({
                                           mealId: meal.id,
@@ -203,18 +226,26 @@ export function PlanClient(props: {
 
       {swapTarget && activeMeal && activeRecipe && activeItem && activeFromIngredient && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-4 backdrop-blur-sm sm:items-center"
           role="dialog"
           aria-modal="true"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) closeSwapModal();
           }}
         >
-          <div className="w-full max-w-xl rounded-xl bg-white shadow-xl">
-            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 p-5">
-              <div>
+          <div className="w-full max-w-xl overflow-hidden rounded-[22px] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
+            <div className="flex items-start justify-between gap-4 border-b border-[color:var(--border)] p-5">
+              <div className="flex items-start gap-3">
+                <div className="h-12 w-12 overflow-hidden rounded-[16px] border border-[color:var(--border)] bg-[var(--surface-2)]">
+                  <img
+                    src={activeRecipe.imageSrc}
+                    alt={activeRecipe.imageAlt}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
                 <h3 className="text-lg font-semibold">Swap ingredient</h3>
-                <p className="mt-1 text-sm text-zinc-600">
+                <p className="ns-muted mt-1 text-sm">
                   Meal: <span className="font-medium text-zinc-900">{activeMeal.name}</span> · Recipe:{" "}
                   <span className="font-medium text-zinc-900">{activeRecipe.name}</span>
                   <br />
@@ -223,7 +254,7 @@ export function PlanClient(props: {
                 </p>
               </div>
               <button
-                className="rounded-md p-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                className="rounded-full border border-[color:var(--border)] bg-[var(--surface)] p-2 text-zinc-700 hover:bg-[var(--surface-2)]"
                 onClick={closeSwapModal}
                 aria-label="Close"
               >
@@ -236,7 +267,7 @@ export function PlanClient(props: {
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-medium text-zinc-900">Substitute</span>
                   <select
-                    className="h-10 rounded-md border border-zinc-200 bg-white px-3"
+                    className="h-10 rounded-[16px] border border-[color:var(--border)] bg-[var(--surface)] px-3"
                     value={swapToIngredientId}
                     onChange={(e) => setSwapToIngredientId(e.target.value)}
                   >
@@ -253,7 +284,7 @@ export function PlanClient(props: {
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-medium text-zinc-900">Preserve</span>
                   <select
-                    className="h-10 rounded-md border border-zinc-200 bg-white px-3"
+                    className="h-10 rounded-[16px] border border-[color:var(--border)] bg-[var(--surface)] px-3"
                     value={preserve}
                     onChange={(e) => setPreserve(e.target.value as PreserveMetric)}
                   >
@@ -265,12 +296,12 @@ export function PlanClient(props: {
                 </label>
               </div>
 
-              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+              <div className="rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-2)] p-4">
                 <h4 className="text-sm font-semibold text-zinc-900">Preview</h4>
 
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-md bg-white p-3">
-                    <div className="text-xs font-medium text-zinc-600">Before</div>
+                  <div className="rounded-[16px] bg-[var(--surface)] p-3">
+                    <div className="text-xs font-semibold ns-muted">Before</div>
                     <div className="mt-1 text-sm text-zinc-900">
                       Line item: {fmt0(activeItem.grams)}g
                     </div>
@@ -292,8 +323,8 @@ export function PlanClient(props: {
                     )}
                   </div>
 
-                  <div className="rounded-md bg-white p-3">
-                    <div className="text-xs font-medium text-zinc-600">After</div>
+                  <div className="rounded-[16px] bg-[var(--surface)] p-3">
+                    <div className="text-xs font-semibold ns-muted">After</div>
                     <div className="mt-1 text-sm text-zinc-900">
                       Line item:{" "}
                       {activeAfterItem ? `${fmt0(activeAfterItem.grams)}g` : "—"}
@@ -326,17 +357,17 @@ export function PlanClient(props: {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-zinc-200 p-5">
+            <div className="flex items-center justify-end gap-3 border-t border-[color:var(--border)] p-5">
               <button
-                className="h-10 rounded-md border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
+                className="ns-btn h-10 bg-[var(--surface)] px-4 text-sm text-[color:var(--foreground)] hover:bg-[var(--surface-2)]"
                 onClick={closeSwapModal}
               >
                 Cancel
               </button>
               <button
                 className={clsx(
-                  "h-10 rounded-md px-4 text-sm font-medium text-white",
-                  activeAfterItem?.grams === 0 ? "bg-zinc-400" : "bg-zinc-900 hover:bg-zinc-800",
+                  "ns-btn h-10 px-4 text-sm",
+                  activeAfterItem?.grams === 0 ? "bg-zinc-300 text-zinc-700" : "ns-btn-primary",
                 )}
                 disabled={activeAfterItem?.grams === 0}
                 onClick={() => {

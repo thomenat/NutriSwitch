@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6fe7d7"/>
+      <stop offset="1" stop-color="#d9c2ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" rx="64" fill="url(#bg)"/>
+  <path d="M70 470c60-190 180-260 290-230s210 150 180 280-220 170-340 110S10 660 70 470z" fill="#fff" opacity="0.16"/>
+  <g transform="translate(120 150)">
+    <ellipse cx="200" cy="360" rx="190" ry="60" fill="#0f172a" opacity="0.10"/>
+    <circle cx="200" cy="290" r="150" fill="#fff" opacity="0.92"/>
+    <circle cx="200" cy="290" r="120" fill="#fff3ea" opacity="0.95"/>
+    <!-- broccoli-ish florets -->
+    <g opacity="0.95">
+      <circle cx="150" cy="270" r="28" fill="#6fe7d7"/>
+      <circle cx="185" cy="250" r="26" fill="#6fe7d7"/>
+      <circle cx="215" cy="272" r="28" fill="#6fe7d7"/>
+      <rect x="182" y="278" width="22" height="46" rx="11" fill="#111827" opacity="0.18"/>
+    </g>
+    <!-- oil drop -->
+    <path d="M280 220c18 30 32 52 32 70 0 22-18 40-40 40s-40-18-40-40c0-18 15-40 32-70 3-5 13-5 16 0z" fill="#ffe38a" opacity="0.9"/>
+  </g>
+</svg>

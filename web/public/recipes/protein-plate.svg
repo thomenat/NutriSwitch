@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6fe7d7"/>
+      <stop offset="1" stop-color="#ffe38a"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" rx="64" fill="url(#bg)"/>
+  <path d="M120 120c140-90 280-60 360 60s30 280-120 350-330 10-380-130S-20 210 120 120z" fill="#fff" opacity="0.16"/>
+  <g transform="translate(120 140)">
+    <ellipse cx="200" cy="350" rx="190" ry="62" fill="#0f172a" opacity="0.10"/>
+    <circle cx="200" cy="280" r="150" fill="#fff" opacity="0.92"/>
+    <circle cx="200" cy="280" r="120" fill="#fff3ea" opacity="0.95"/>
+    <!-- protein block -->
+    <path d="M155 250c25-30 70-30 95 0 22 27 22 70 0 97-25 30-70 30-95 0-22-27-22-70 0-97z" fill="#ff4fa3" opacity="0.55"/>
+    <path d="M160 275c20-22 55-22 75 0 18 20 18 50 0 70-20 22-55 22-75 0-18-20-18-50 0-70z" fill="#fff" opacity="0.35"/>
+    <!-- garnish -->
+    <circle cx="120" cy="230" r="22" fill="#8cd3ff" opacity="0.85"/>
+    <circle cx="270" cy="230" r="18" fill="#d9c2ff" opacity="0.85"/>
+    <circle cx="245" cy="335" r="20" fill="#6fe7d7" opacity="0.85"/>
+  </g>
+</svg>

@@ -6,7 +6,7 @@ export default function PlanPage() {
   const day1 = DEMO_PLAN.days[0];
 
   return (
-    <main className="bg-zinc-100">
+    <main>
       <PlanClient ingredients={INGREDIENTS} initialMeals={day1.meals} />
     </main>
   );

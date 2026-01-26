@@ -1,8 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* NutriSwitch design tokens (inspired by pastel IG grid aesthetic). */
+  --background: #fff8f1; /* warm cream */
+  --foreground: #1f2937; /* zinc-800 */
+
+  --surface: #ffffff;
+  --surface-2: #fff3ea;
+  --border: rgba(15, 23, 42, 0.10);
+  --muted: rgba(31, 41, 55, 0.72);
+
+  --accent-pink: #ff4fa3;
+  --accent-mint: #6fe7d7;
+  --accent-sky: #8cd3ff;
+  --accent-lemon: #ffe38a;
+  --accent-lilac: #d9c2ff;
+
+  --radius-xl: 22px;
+  --radius-lg: 16px;
+  --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.10);
+  --shadow-card: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 @theme inline {
@@ -10,17 +27,126 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Tailwind v4 theme tokens. */
+  --color-ns-bg: var(--background);
+  --color-ns-fg: var(--foreground);
+  --color-ns-surface: var(--surface);
+  --color-ns-surface-2: var(--surface-2);
+  --color-ns-border: var(--border);
+  --color-ns-muted: var(--muted);
+  --color-ns-pink: var(--accent-pink);
+  --color-ns-mint: var(--accent-mint);
+  --color-ns-sky: var(--accent-sky);
+  --color-ns-lemon: var(--accent-lemon);
+  --color-ns-lilac: var(--accent-lilac);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0b0b10;
+    --foreground: #f4f4f5;
+    --surface: #11111a;
+    --surface-2: #141422;
+    --border: rgba(244, 244, 245, 0.14);
+    --muted: rgba(244, 244, 245, 0.72);
+
+    --shadow-soft: 0 12px 36px rgba(0, 0, 0, 0.55);
+    --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.45);
   }
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, Segoe UI, Roboto,
+    Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Soft “collage” background: subtle gradient + tiny paper grain. */
+  background:
+    radial-gradient(900px 450px at 10% 10%, color-mix(in oklab, var(--accent-lemon) 35%, transparent) 0%, transparent 60%),
+    radial-gradient(900px 450px at 90% 20%, color-mix(in oklab, var(--accent-sky) 30%, transparent) 0%, transparent 65%),
+    radial-gradient(900px 450px at 30% 95%, color-mix(in oklab, var(--accent-pink) 22%, transparent) 0%, transparent 65%),
+    linear-gradient(180deg, var(--background), color-mix(in oklab, var(--background) 92%, var(--accent-mint) 8%));
+}
+
+@layer utilities {
+  .ns-blob {
+    position: relative;
+    overflow: hidden;
+  }
+  .ns-blob::before,
+  .ns-blob::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    filter: blur(0px);
+    opacity: 0.55;
+  }
+  .ns-blob::before {
+    width: 280px;
+    height: 280px;
+    left: -120px;
+    top: -120px;
+    background: radial-gradient(circle at 30% 30%, color-mix(in oklab, var(--accent-pink) 70%, white), transparent 60%),
+      radial-gradient(circle at 70% 70%, color-mix(in oklab, var(--accent-lemon) 70%, white), transparent 62%);
+    border-radius: 46% 54% 56% 44% / 52% 42% 58% 48%;
+  }
+  .ns-blob::after {
+    width: 320px;
+    height: 320px;
+    right: -150px;
+    bottom: -160px;
+    background: radial-gradient(circle at 30% 30%, color-mix(in oklab, var(--accent-sky) 70%, white), transparent 60%),
+      radial-gradient(circle at 70% 70%, color-mix(in oklab, var(--accent-mint) 70%, white), transparent 62%);
+    border-radius: 52% 48% 40% 60% / 45% 62% 38% 55%;
+  }
+
+  .ns-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+  }
+
+  .ns-card-soft {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: color-mix(in oklab, var(--surface) 85%, var(--accent-lemon) 15%);
+    box-shadow: var(--shadow-card);
+  }
+
+  .ns-chip {
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--surface) 82%, var(--accent-sky) 18%);
+    padding: 0.25rem 0.6rem;
+  }
+
+  .ns-btn {
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    padding: 0.55rem 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+  }
+
+  .ns-btn-primary {
+    color: #0b0b10;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--accent-lemon) 80%, white),
+      color-mix(in oklab, var(--accent-mint) 70%, white)
+    );
+  }
+
+  .ns-btn-dark {
+    color: white;
+    background: linear-gradient(135deg, #111827, #0f172a);
+  }
+
+  .ns-muted {
+    color: var(--muted);
+  }
 }

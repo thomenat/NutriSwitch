@@ -25,6 +25,8 @@ export type MealIngredient = {
 export type Recipe = {
   id: string;
   name: string;
+  imageSrc: string;
+  imageAlt: string;
   items: MealIngredient[];
 };
 

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8cd3ff"/>
+      <stop offset="1" stop-color="#6fe7d7"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" rx="64" fill="url(#bg)"/>
+  <circle cx="160" cy="150" r="140" fill="#fff" opacity="0.18"/>
+  <circle cx="520" cy="520" r="180" fill="#fff" opacity="0.16"/>
+  <g transform="translate(120 150)">
+    <ellipse cx="200" cy="360" rx="190" ry="60" fill="#0f172a" opacity="0.10"/>
+    <circle cx="200" cy="290" r="150" fill="#fff" opacity="0.92"/>
+    <circle cx="200" cy="290" r="120" fill="#fff3ea" opacity="0.95"/>
+    <!-- salmon fillet -->
+    <path d="M120 310c30-60 140-85 220-35 30 20 30 60 0 80-80 50-190 25-220-45z" fill="#ff4fa3" opacity="0.72"/>
+    <path d="M140 318c24-38 110-55 170-26" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity="0.45"/>
+    <path d="M150 340c30 26 100 38 165 18" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity="0.35"/>
+    <!-- greens -->
+    <circle cx="300" cy="250" r="20" fill="#6fe7d7" opacity="0.95"/>
+    <circle cx="280" cy="230" r="16" fill="#6fe7d7" opacity="0.95"/>
+  </g>
+</svg>
