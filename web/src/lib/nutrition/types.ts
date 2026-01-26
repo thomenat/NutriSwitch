@@ -22,10 +22,16 @@ export type MealIngredient = {
   grams: number;
 };
 
-export type Meal = {
+export type Recipe = {
   id: string;
   name: string;
   items: MealIngredient[];
+};
+
+export type Meal = {
+  id: string;
+  name: string;
+  recipes: Recipe[];
 };
 
 export type MealPlanDay = {

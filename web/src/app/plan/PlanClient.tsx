@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Ingredient, Meal, PreserveMetric } from "@/lib/nutrition/types";
-import { mealTotals, scaleMacros, swapMealItem } from "@/lib/nutrition/calc";
+import { mealTotals, recipeTotalsFor, scaleMacros, swapMealItem } from "@/lib/nutrition/calc";
 
 function fmt1(n: number): string {
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(n);
@@ -12,7 +12,15 @@ function fmt0(n: number): string {
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n);
 }
 
-type RowKey = `${string}:${number}`;
+function clsx(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
+}
+
+type SwapTarget = {
+  mealId: string;
+  recipeIndex: number;
+  itemIndex: number;
+};
 
 export function PlanClient(props: {
   ingredients: Ingredient[];
@@ -24,12 +32,68 @@ export function PlanClient(props: {
   );
 
   const [meals, setMeals] = useState<Meal[]>(props.initialMeals);
-  const [swapToByRow, setSwapToByRow] = useState<Record<RowKey, string>>({});
-  const [preserveByRow, setPreserveByRow] = useState<Record<RowKey, PreserveMetric>>(
-    {},
-  );
+  const [swapTarget, setSwapTarget] = useState<SwapTarget | null>(null);
+  const [swapToIngredientId, setSwapToIngredientId] = useState<string>("");
+  const [preserve, setPreserve] = useState<PreserveMetric>("calories");
 
-  const preserveDefault: PreserveMetric = "calories";
+  const activeMeal = swapTarget
+    ? meals.find((m) => m.id === swapTarget.mealId) ?? null
+    : null;
+  const activeItem =
+    swapTarget && activeMeal
+      ? activeMeal.recipes[swapTarget.recipeIndex]?.items[swapTarget.itemIndex] ?? null
+      : null;
+  const activeRecipe =
+    swapTarget && activeMeal ? activeMeal.recipes[swapTarget.recipeIndex] ?? null : null;
+  const activeFromIngredient = activeItem
+    ? ingredientsById.get(activeItem.ingredientId) ?? null
+    : null;
+  const activeToIngredient =
+    swapToIngredientId ? ingredientsById.get(swapToIngredientId) ?? null : null;
+
+  const activeMealBeforeTotals = activeMeal ? mealTotals(activeMeal, ingredientsById) : null;
+  const activeMealAfter =
+    swapTarget && activeMeal && swapToIngredientId
+      ? swapMealItem({
+          meal: activeMeal,
+          recipeIndex: swapTarget.recipeIndex,
+          itemIndex: swapTarget.itemIndex,
+          toIngredientId: swapToIngredientId,
+          preserve,
+          ingredientsById,
+        })
+      : null;
+  const activeMealAfterTotals = activeMealAfter
+    ? mealTotals(activeMealAfter, ingredientsById)
+    : null;
+  const activeAfterItem =
+    swapTarget && activeMealAfter
+      ? activeMealAfter.recipes[swapTarget.recipeIndex]?.items[swapTarget.itemIndex] ?? null
+      : null;
+
+  const activeRecipeBeforeTotals =
+    activeRecipe && activeMeal ? recipeTotalsFor(activeRecipe, ingredientsById) : null;
+  const activeRecipeAfterTotals =
+    swapTarget && activeMealAfter
+      ? recipeTotalsFor(activeMealAfter.recipes[swapTarget.recipeIndex]!, ingredientsById)
+      : null;
+
+  function openSwapModal(target: SwapTarget) {
+    const meal = meals.find((m) => m.id === target.mealId);
+    const recipe = meal?.recipes[target.recipeIndex];
+    const item = recipe?.items[target.itemIndex];
+    if (!meal || !recipe || !item) return;
+
+    const defaultTo =
+      props.ingredients.find((i) => i.id !== item.ingredientId)?.id ?? "";
+    setSwapTarget(target);
+    setPreserve("calories");
+    setSwapToIngredientId(defaultTo);
+  }
+
+  function closeSwapModal() {
+    setSwapTarget(null);
+  }
 
   return (
     <div className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 px-6 py-10">
@@ -59,112 +123,235 @@ export function PlanClient(props: {
                 </div>
               </div>
 
-              <div className="mt-4 overflow-x-auto">
-                <table className="w-full min-w-[720px] border-separate border-spacing-y-2 text-sm">
-                  <thead className="text-left text-zinc-600">
-                    <tr>
-                      <th className="px-3">Ingredient</th>
-                      <th className="px-3">Grams</th>
-                      <th className="px-3">kcal</th>
-                      <th className="px-3">P</th>
-                      <th className="px-3">C</th>
-                      <th className="px-3">F</th>
-                      <th className="px-3">Swap</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {meal.items.map((item, idx) => {
-                      const ingredient = ingredientsById.get(item.ingredientId);
-                      if (!ingredient) return null;
+              <div className="mt-4 flex flex-col gap-5">
+                {meal.recipes.map((recipe, recipeIndex) => {
+                  const recipeTotals = recipeTotalsFor(recipe, ingredientsById);
+                  return (
+                    <div key={recipe.id} className="rounded-xl border border-zinc-200 bg-white">
+                      <div className="flex flex-col gap-1 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                          <h3 className="text-sm font-semibold text-zinc-900">{recipe.name}</h3>
+                          <p className="text-xs text-zinc-600">
+                            Recipe total: {fmt0(recipeTotals.calories)} kcal · P{" "}
+                            {fmt1(recipeTotals.protein)}g · C {fmt1(recipeTotals.carbs)}g · F{" "}
+                            {fmt1(recipeTotals.fat)}g
+                          </p>
+                        </div>
+                      </div>
 
-                      const rowKey: RowKey = `${meal.id}:${idx}`;
-                      const preserve = preserveByRow[rowKey] ?? preserveDefault;
-                      const swapTo =
-                        swapToByRow[rowKey] ??
-                        props.ingredients.find((i) => i.id !== item.ingredientId)?.id ??
-                        item.ingredientId;
+                      <div className="overflow-x-auto">
+                        <table className="w-full min-w-[720px] border-separate border-spacing-y-2 px-2 py-2 text-sm">
+                          <thead className="text-left text-zinc-600">
+                            <tr>
+                              <th className="px-3">Ingredient</th>
+                              <th className="px-3">Grams</th>
+                              <th className="px-3">kcal</th>
+                              <th className="px-3">P</th>
+                              <th className="px-3">C</th>
+                              <th className="px-3">F</th>
+                              <th className="px-3">Swap</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {recipe.items.map((item, itemIndex) => {
+                              const ingredient = ingredientsById.get(item.ingredientId);
+                              if (!ingredient) return null;
 
-                      const line = scaleMacros(ingredient.macrosPer100g, item.grams);
+                              const line = scaleMacros(ingredient.macrosPer100g, item.grams);
 
-                      return (
-                        <tr key={rowKey} className="rounded-lg bg-zinc-50">
-                          <td className="px-3 py-3 font-medium text-zinc-900">
-                            {ingredient.name}
-                          </td>
-                          <td className="px-3 py-3">{fmt0(item.grams)} g</td>
-                          <td className="px-3 py-3">{fmt0(line.calories)}</td>
-                          <td className="px-3 py-3">{fmt1(line.protein)}</td>
-                          <td className="px-3 py-3">{fmt1(line.carbs)}</td>
-                          <td className="px-3 py-3">{fmt1(line.fat)}</td>
-                          <td className="px-3 py-3">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <select
-                                className="h-9 rounded-md border border-zinc-200 bg-white px-2"
-                                value={swapTo}
-                                onChange={(e) =>
-                                  setSwapToByRow((s) => ({
-                                    ...s,
-                                    [rowKey]: e.target.value,
-                                  }))
-                                }
-                              >
-                                {props.ingredients
-                                  .filter((i) => i.id !== item.ingredientId)
-                                  .map((i) => (
-                                    <option key={i.id} value={i.id}>
-                                      {i.name}
-                                    </option>
-                                  ))}
-                              </select>
-
-                              <select
-                                className="h-9 rounded-md border border-zinc-200 bg-white px-2"
-                                value={preserve}
-                                onChange={(e) =>
-                                  setPreserveByRow((s) => ({
-                                    ...s,
-                                    [rowKey]: e.target.value as PreserveMetric,
-                                  }))
-                                }
-                              >
-                                <option value="calories">Preserve calories</option>
-                                <option value="protein">Preserve protein</option>
-                                <option value="carbs">Preserve carbs</option>
-                                <option value="fat">Preserve fat</option>
-                              </select>
-
-                              <button
-                                className="h-9 rounded-md bg-zinc-900 px-3 font-medium text-white hover:bg-zinc-800"
-                                onClick={() => {
-                                  setMeals((prev) =>
-                                    prev.map((m) =>
-                                      m.id !== meal.id
-                                        ? m
-                                        : swapMealItem({
-                                            meal: m,
-                                            itemIndex: idx,
-                                            toIngredientId: swapTo,
-                                            preserve,
-                                            ingredientsById,
-                                          }),
-                                    ),
-                                  );
-                                }}
-                              >
-                                Swap
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                              return (
+                                <tr
+                                  key={`${meal.id}:${recipe.id}:${itemIndex}`}
+                                  className="rounded-lg bg-zinc-50"
+                                >
+                                  <td className="px-3 py-3 font-medium text-zinc-900">
+                                    {ingredient.name}
+                                  </td>
+                                  <td className="px-3 py-3">{fmt0(item.grams)} g</td>
+                                  <td className="px-3 py-3">{fmt0(line.calories)}</td>
+                                  <td className="px-3 py-3">{fmt1(line.protein)}</td>
+                                  <td className="px-3 py-3">{fmt1(line.carbs)}</td>
+                                  <td className="px-3 py-3">{fmt1(line.fat)}</td>
+                                  <td className="px-3 py-3">
+                                    <button
+                                      className="h-9 rounded-md bg-zinc-900 px-3 font-medium text-white hover:bg-zinc-800"
+                                      onClick={() =>
+                                        openSwapModal({
+                                          mealId: meal.id,
+                                          recipeIndex,
+                                          itemIndex,
+                                        })
+                                      }
+                                    >
+                                      Swap…
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           );
         })}
       </div>
+
+      {swapTarget && activeMeal && activeRecipe && activeItem && activeFromIngredient && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) closeSwapModal();
+          }}
+        >
+          <div className="w-full max-w-xl rounded-xl bg-white shadow-xl">
+            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 p-5">
+              <div>
+                <h3 className="text-lg font-semibold">Swap ingredient</h3>
+                <p className="mt-1 text-sm text-zinc-600">
+                  Meal: <span className="font-medium text-zinc-900">{activeMeal.name}</span> · Recipe:{" "}
+                  <span className="font-medium text-zinc-900">{activeRecipe.name}</span>
+                  <br />
+                  You’re swapping <span className="font-medium text-zinc-900">{activeFromIngredient.name}</span>{" "}
+                  ({fmt0(activeItem.grams)}g)
+                </p>
+              </div>
+              <button
+                className="rounded-md p-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                onClick={closeSwapModal}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-5 p-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-medium text-zinc-900">Substitute</span>
+                  <select
+                    className="h-10 rounded-md border border-zinc-200 bg-white px-3"
+                    value={swapToIngredientId}
+                    onChange={(e) => setSwapToIngredientId(e.target.value)}
+                  >
+                    {props.ingredients
+                      .filter((i) => i.id !== activeItem.ingredientId)
+                      .map((i) => (
+                        <option key={i.id} value={i.id}>
+                          {i.name}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-medium text-zinc-900">Preserve</span>
+                  <select
+                    className="h-10 rounded-md border border-zinc-200 bg-white px-3"
+                    value={preserve}
+                    onChange={(e) => setPreserve(e.target.value as PreserveMetric)}
+                  >
+                    <option value="calories">Calories</option>
+                    <option value="protein">Protein</option>
+                    <option value="carbs">Carbs</option>
+                    <option value="fat">Fat</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                <h4 className="text-sm font-semibold text-zinc-900">Preview</h4>
+
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-md bg-white p-3">
+                    <div className="text-xs font-medium text-zinc-600">Before</div>
+                    <div className="mt-1 text-sm text-zinc-900">
+                      Line item: {fmt0(activeItem.grams)}g
+                    </div>
+                    {activeRecipeBeforeTotals && (
+                      <div className="mt-2 text-xs text-zinc-700">
+                        Recipe total: {fmt0(activeRecipeBeforeTotals.calories)} kcal · P{" "}
+                        {fmt1(activeRecipeBeforeTotals.protein)}g · C{" "}
+                        {fmt1(activeRecipeBeforeTotals.carbs)}g · F{" "}
+                        {fmt1(activeRecipeBeforeTotals.fat)}g
+                      </div>
+                    )}
+                    {activeMealBeforeTotals && (
+                      <div className="mt-2 text-xs text-zinc-700">
+                        Meal total: {fmt0(activeMealBeforeTotals.calories)} kcal · P{" "}
+                        {fmt1(activeMealBeforeTotals.protein)}g · C{" "}
+                        {fmt1(activeMealBeforeTotals.carbs)}g · F{" "}
+                        {fmt1(activeMealBeforeTotals.fat)}g
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="rounded-md bg-white p-3">
+                    <div className="text-xs font-medium text-zinc-600">After</div>
+                    <div className="mt-1 text-sm text-zinc-900">
+                      Line item:{" "}
+                      {activeAfterItem ? `${fmt0(activeAfterItem.grams)}g` : "—"}
+                    </div>
+                    {activeRecipeAfterTotals && (
+                      <div className="mt-2 text-xs text-zinc-700">
+                        Recipe total: {fmt0(activeRecipeAfterTotals.calories)} kcal · P{" "}
+                        {fmt1(activeRecipeAfterTotals.protein)}g · C{" "}
+                        {fmt1(activeRecipeAfterTotals.carbs)}g · F{" "}
+                        {fmt1(activeRecipeAfterTotals.fat)}g
+                      </div>
+                    )}
+                    {activeMealAfterTotals && (
+                      <div className="mt-2 text-xs text-zinc-700">
+                        Meal total: {fmt0(activeMealAfterTotals.calories)} kcal · P{" "}
+                        {fmt1(activeMealAfterTotals.protein)}g · C{" "}
+                        {fmt1(activeMealAfterTotals.carbs)}g · F{" "}
+                        {fmt1(activeMealAfterTotals.fat)}g
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {activeToIngredient && activeAfterItem?.grams === 0 && (
+                  <p className="mt-3 text-sm text-amber-700">
+                    Can’t preserve {preserve} for this swap (missing/zero values). Try a
+                    different metric.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-zinc-200 p-5">
+              <button
+                className="h-10 rounded-md border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-900 hover:bg-zinc-50"
+                onClick={closeSwapModal}
+              >
+                Cancel
+              </button>
+              <button
+                className={clsx(
+                  "h-10 rounded-md px-4 text-sm font-medium text-white",
+                  activeAfterItem?.grams === 0 ? "bg-zinc-400" : "bg-zinc-900 hover:bg-zinc-800",
+                )}
+                disabled={activeAfterItem?.grams === 0}
+                onClick={() => {
+                  const nextMeal = activeMealAfter;
+                  if (!nextMeal) return;
+                  setMeals((prev) => prev.map((m) => (m.id === nextMeal.id ? nextMeal : m)));
+                  closeSwapModal();
+                }}
+              >
+                Confirm swap
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

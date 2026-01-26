@@ -1,4 +1,4 @@
-import type { Ingredient, Macros, Meal, PreserveMetric } from "./types";
+import type { Ingredient, Macros, Meal, PreserveMetric, Recipe } from "./types";
 
 export function roundGrams(grams: number): number {
   if (!Number.isFinite(grams)) return 0;
@@ -29,7 +29,17 @@ export function zeroMacros(): Macros {
 }
 
 export function mealTotals(meal: Meal, ingredientsById: Map<string, Ingredient>): Macros {
-  return meal.items.reduce((acc, item) => {
+  return meal.recipes.reduce((mealAcc, recipe) => {
+    const recipeTotals = recipeTotalsFor(recipe, ingredientsById);
+    return addMacros(mealAcc, recipeTotals);
+  }, zeroMacros());
+}
+
+export function recipeTotalsFor(
+  recipe: Recipe,
+  ingredientsById: Map<string, Ingredient>,
+): Macros {
+  return recipe.items.reduce((acc, item) => {
     const ingredient = ingredientsById.get(item.ingredientId);
     if (!ingredient) return acc;
     return addMacros(acc, scaleMacros(ingredient.macrosPer100g, item.grams));
@@ -56,13 +66,16 @@ export function computeSwapGrams(input: {
 
 export function swapMealItem(input: {
   meal: Meal;
+  recipeIndex: number;
   itemIndex: number;
   toIngredientId: string;
   preserve: PreserveMetric;
   ingredientsById: Map<string, Ingredient>;
 }): Meal {
-  const { meal, itemIndex, toIngredientId, preserve, ingredientsById } = input;
-  const fromItem = meal.items[itemIndex];
+  const { meal, recipeIndex, itemIndex, toIngredientId, preserve, ingredientsById } =
+    input;
+  const recipe = meal.recipes[recipeIndex];
+  const fromItem = recipe?.items[itemIndex];
   if (!fromItem) return meal;
 
   const fromIngredient = ingredientsById.get(fromItem.ingredientId);
@@ -78,10 +91,14 @@ export function swapMealItem(input: {
     }),
   );
 
-  const nextItems = meal.items.map((it, idx) =>
-    idx === itemIndex ? { ingredientId: toIngredientId, grams: newGrams } : it,
-  );
+  const nextRecipes = meal.recipes.map((r, rIdx) => {
+    if (rIdx !== recipeIndex) return r;
+    const nextItems = r.items.map((it, idx) =>
+      idx === itemIndex ? { ingredientId: toIngredientId, grams: newGrams } : it,
+    );
+    return { ...r, items: nextItems };
+  });
 
-  return { ...meal, items: nextItems };
+  return { ...meal, recipes: nextRecipes };
 }
 
