@@ -27,6 +27,8 @@ export type Recipe = {
   name: string;
   imageSrc: string;
   imageAlt: string;
+  servesText?: string;
+  totalTimeMinutes?: number;
   items: MealIngredient[];
 };
 

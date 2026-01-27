@@ -17,6 +17,8 @@ export const DEMO_PLAN: MealPlan = {
               name: "Overnight oats",
               imageSrc: "/recipes/overnight-oats.svg",
               imageAlt: "Overnight oats bowl illustration",
+              servesText: "1 bowl",
+              totalTimeMinutes: 10,
               items: [
                 { ingredientId: "oats", grams: 60 },
                 { ingredientId: "greek-yogurt-0", grams: 200 },
@@ -27,6 +29,8 @@ export const DEMO_PLAN: MealPlan = {
               name: "Banana bowl",
               imageSrc: "/recipes/banana-bowl.svg",
               imageAlt: "Banana bowl illustration",
+              servesText: "1 bowl",
+              totalTimeMinutes: 5,
               items: [
                 { ingredientId: "banana", grams: 120 },
                 { ingredientId: "greek-yogurt-0", grams: 100 },
@@ -37,6 +41,8 @@ export const DEMO_PLAN: MealPlan = {
               name: "Simple carbs",
               imageSrc: "/recipes/simple-carbs.svg",
               imageAlt: "Simple carbs illustration",
+              servesText: "1 snack",
+              totalTimeMinutes: 5,
               items: [
                 { ingredientId: "oats", grams: 30 },
                 { ingredientId: "banana", grams: 80 },
@@ -53,6 +59,8 @@ export const DEMO_PLAN: MealPlan = {
               name: "Protein plate",
               imageSrc: "/recipes/protein-plate.svg",
               imageAlt: "Protein plate illustration",
+              servesText: "1 plate",
+              totalTimeMinutes: 15,
               items: [{ ingredientId: "chicken-breast-cooked", grams: 160 }],
             },
             {
@@ -60,6 +68,8 @@ export const DEMO_PLAN: MealPlan = {
               name: "Carb base",
               imageSrc: "/recipes/carb-base.svg",
               imageAlt: "Carb base illustration",
+              servesText: "1 bowl",
+              totalTimeMinutes: 10,
               items: [{ ingredientId: "rice-white-cooked", grams: 220 }],
             },
             {
@@ -67,6 +77,8 @@ export const DEMO_PLAN: MealPlan = {
               name: "Veg + fat",
               imageSrc: "/recipes/veg-fat.svg",
               imageAlt: "Vegetables and fat illustration",
+              servesText: "1 side",
+              totalTimeMinutes: 10,
               items: [
                 { ingredientId: "broccoli-steamed", grams: 150 },
                 { ingredientId: "olive-oil", grams: 10 },
@@ -83,6 +95,8 @@ export const DEMO_PLAN: MealPlan = {
               name: "Salmon",
               imageSrc: "/recipes/salmon.svg",
               imageAlt: "Salmon bowl illustration",
+              servesText: "1 bowl",
+              totalTimeMinutes: 20,
               items: [{ ingredientId: "salmon-cooked", grams: 160 }],
             },
             {
@@ -90,6 +104,8 @@ export const DEMO_PLAN: MealPlan = {
               name: "Sweet potato",
               imageSrc: "/recipes/sweet-potato.svg",
               imageAlt: "Sweet potato illustration",
+              servesText: "1 side",
+              totalTimeMinutes: 25,
               items: [{ ingredientId: "sweet-potato-baked", grams: 250 }],
             },
             {
@@ -97,6 +113,8 @@ export const DEMO_PLAN: MealPlan = {
               name: "Greens",
               imageSrc: "/recipes/greens.svg",
               imageAlt: "Greens illustration",
+              servesText: "1 side",
+              totalTimeMinutes: 10,
               items: [{ ingredientId: "broccoli-steamed", grams: 150 }],
             },
           ],
