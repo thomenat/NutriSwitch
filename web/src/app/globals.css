@@ -75,6 +75,11 @@ body {
   .ns-blob {
     position: relative;
     overflow: hidden;
+    z-index: 0;
+  }
+  .ns-blob > * {
+    position: relative;
+    z-index: 1;
   }
   .ns-blob::before,
   .ns-blob::after {
@@ -83,6 +88,7 @@ body {
     pointer-events: none;
     filter: blur(0px);
     opacity: 0.55;
+    z-index: 0;
   }
   .ns-blob::before {
     width: 280px;
