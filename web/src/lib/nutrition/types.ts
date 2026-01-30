@@ -7,6 +7,10 @@ export type Macros = {
 
 export type PreserveMetric = keyof Macros;
 
+export type DietaryRestriction = "vegan" | "vegetarian" | "glutenFree" | "dairyFree";
+
+export type DietFlags = Record<DietaryRestriction, boolean>;
+
 export type Ingredient = {
   id: string;
   name: string;
@@ -15,6 +19,7 @@ export type Ingredient = {
    * Later, an API provider can populate these from a reliable database.
    */
   macrosPer100g: Macros;
+  diet: DietFlags;
 };
 
 export type MealIngredient = {

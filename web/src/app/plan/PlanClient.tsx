@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { Ingredient, Meal, PreserveMetric } from "@/lib/nutrition/types";
+import { useEffect, useMemo, useState } from "react";
+import type { DietaryRestriction, Ingredient, Meal, PreserveMetric } from "@/lib/nutrition/types";
 import { mealTotals, recipeTotalsFor, scaleMacros, swapMealItem } from "@/lib/nutrition/calc";
+import { DIETARY_RESTRICTIONS, ingredientSatisfiesAll, recipeSatisfiesAll } from "@/lib/nutrition/diet";
 import { kitchenApprox } from "@/lib/nutrition/kitchen";
 
 function fmt1(n: number): string {
@@ -128,6 +129,7 @@ export function PlanClient(props: {
   const [swapToIngredientId, setSwapToIngredientId] = useState<string>("");
   const [preserve, setPreserve] = useState<PreserveMetric>("calories");
   const [unitPref, setUnitPref] = useState<UnitPreference>("metric");
+  const [dietary, setDietary] = useState<DietaryRestriction[]>([]);
 
   const activeMeal = swapTarget
     ? meals.find((m) => m.id === swapTarget.mealId) ?? null
@@ -195,6 +197,21 @@ export function PlanClient(props: {
     });
   }
 
+  function toggleDietary(id: DietaryRestriction) {
+    setDietary((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+  useEffect(() => {
+    // If filters change and the currently expanded recipe no longer matches, collapse it.
+    if (!expanded) return;
+    const meal = meals.find((m) => m.id === expanded.mealId);
+    const recipe = meal?.recipes[expanded.recipeIndex];
+    if (!meal || !recipe) return;
+    if (!recipeSatisfiesAll(recipe, ingredientsById, dietary)) {
+      setExpanded(null);
+    }
+  }, [dietary, expanded, ingredientsById, meals]);
+
   function gramsToOz(grams: number): number {
     return grams / 28.349523125;
   }
@@ -250,6 +267,40 @@ export function PlanClient(props: {
             ))}
           </div>
         </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="ns-muted text-sm">Diet:</span>
+          <div className="flex flex-wrap gap-2">
+            {DIETARY_RESTRICTIONS.map((r) => {
+              const active = dietary.includes(r.id);
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  className={clsx(
+                    "rounded-full border border-[color:var(--border)] px-3 py-2 text-xs font-semibold",
+                    active
+                      ? "bg-[var(--surface-2)] text-zinc-900"
+                      : "bg-[var(--surface)] text-zinc-700 hover:bg-[var(--surface-2)]",
+                  )}
+                  onClick={() => toggleDietary(r.id)}
+                  aria-pressed={active}
+                >
+                  {r.label}
+                </button>
+              );
+            })}
+            {dietary.length > 0 && (
+              <button
+                type="button"
+                className="rounded-full border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-[var(--surface-2)]"
+                onClick={() => setDietary([])}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
       </header>
 
       <div className="flex flex-col gap-6">
@@ -278,13 +329,19 @@ export function PlanClient(props: {
                   const expandedIndex =
                     expanded?.mealId === meal.id ? expanded.recipeIndex : null;
 
+                  const filteredRecipes = meal.recipes.filter((r) =>
+                    recipeSatisfiesAll(r, ingredientsById, dietary),
+                  );
+
                   const expandedRecipe =
                     expandedIndex !== null ? meal.recipes[expandedIndex] ?? null : null;
+                  const expandedAllowed =
+                    expandedRecipe && recipeSatisfiesAll(expandedRecipe, ingredientsById, dietary);
 
                   const otherRecipes =
                     expandedIndex === null
-                      ? meal.recipes
-                      : meal.recipes.filter((_, idx) => idx !== expandedIndex);
+                      ? filteredRecipes
+                      : filteredRecipes.filter((r) => r.id !== expandedRecipe?.id);
 
                   const renderRecipeTile = (recipe: (typeof meal.recipes)[number], recipeIndex: number) => {
                     const isExpanded = expandedIndex === recipeIndex;
@@ -322,7 +379,7 @@ export function PlanClient(props: {
                   return (
                     <div className="flex flex-col gap-4">
                       {/* Expanded recipe goes first, full width */}
-                      {expandedRecipe && expandedIndex !== null && (
+                      {expandedRecipe && expandedIndex !== null && expandedAllowed && (
                         <div className="ns-blob overflow-hidden rounded-[22px] border border-[color:var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)]">
                           <button
                             type="button"
@@ -524,7 +581,17 @@ export function PlanClient(props: {
                       )}
 
                       {/* Other options move below the expanded ingredients */}
-                      <div className={clsx("grid grid-cols-2 gap-3 sm:grid-cols-3", expandedRecipe && "sm:grid-cols-3")}>
+                      {otherRecipes.length === 0 ? (
+                        <div className="rounded-[16px] border border-[color:var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm ns-muted">
+                          No recipes match your dietary filters for this meal.
+                        </div>
+                      ) : (
+                        <div
+                          className={clsx(
+                            "grid grid-cols-2 gap-3 sm:grid-cols-3",
+                            expandedRecipe && expandedAllowed && "sm:grid-cols-3",
+                          )}
+                        >
                         {otherRecipes.map((recipe, idx) => {
                           const actualIndex =
                             expandedIndex === null
@@ -532,7 +599,8 @@ export function PlanClient(props: {
                               : meal.recipes.findIndex((r) => r.id === recipe.id);
                           return renderRecipeTile(recipe, actualIndex);
                         })}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
@@ -591,6 +659,7 @@ export function PlanClient(props: {
                   >
                     {props.ingredients
                       .filter((i) => i.id !== activeItem.ingredientId)
+                      .filter((i) => ingredientSatisfiesAll(i, dietary))
                       .map((i) => (
                         <option key={i.id} value={i.id}>
                           {i.name}
