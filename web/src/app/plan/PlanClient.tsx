@@ -117,6 +117,12 @@ type UnitPreference = "metric" | "imperial" | "both";
 export function PlanClient(props: {
   ingredients: Ingredient[];
   initialMeals: Meal[];
+  nutritionMeta?: {
+    provider: "usdaFdc";
+    apiKeyMode: "configured" | "demo_key";
+    apiUsedFor: number;
+    totalIngredients: number;
+  };
 }) {
   const ingredientsById = useMemo(
     () => new Map(props.ingredients.map((i) => [i.id, i] as const)),
@@ -242,6 +248,16 @@ export function PlanClient(props: {
           Swap an ingredient and we’ll recalculate grams to preserve a chosen metric
           (default: calories).
         </p>
+
+        {props.nutritionMeta && (
+          <div className="ns-muted text-sm">
+            Nutrition data: USDA FoodData Central{" "}
+            <span className="ns-chip bg-[var(--surface)] text-[11px] font-semibold">
+              {props.nutritionMeta.apiKeyMode === "configured" ? "API key" : "DEMO_KEY"}
+            </span>{" "}
+            · Loaded {props.nutritionMeta.apiUsedFor}/{props.nutritionMeta.totalIngredients} ingredients
+          </div>
+        )}
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span className="ns-muted text-sm">Units:</span>

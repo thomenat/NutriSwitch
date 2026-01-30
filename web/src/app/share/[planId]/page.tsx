@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DEMO_PLAN } from "@/data/demoPlan";
 import { INGREDIENTS } from "@/data/ingredients";
 import { PlanClient } from "@/app/plan/PlanClient";
+import { loadIngredientsWithUsda } from "@/lib/nutrition/loadIngredients";
 
 export default async function SharePlanPage(props: {
   params: Promise<{ planId: string }>;
@@ -24,6 +25,7 @@ export default async function SharePlanPage(props: {
   }
 
   const day1 = DEMO_PLAN.days[0];
+  const { ingredients, apiKeyMode, apiUsedFor } = await loadIngredientsWithUsda(INGREDIENTS);
 
   return (
     <main>
@@ -39,7 +41,16 @@ export default async function SharePlanPage(props: {
           </div>
         </div>
       </div>
-      <PlanClient ingredients={INGREDIENTS} initialMeals={day1.meals} />
+      <PlanClient
+        ingredients={ingredients}
+        initialMeals={day1.meals}
+        nutritionMeta={{
+          provider: "usdaFdc",
+          apiKeyMode,
+          apiUsedFor,
+          totalIngredients: ingredients.length,
+        }}
+      />
     </main>
   );
 }

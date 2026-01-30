@@ -20,6 +20,7 @@ export type Ingredient = {
    */
   macrosPer100g: Macros;
   diet: DietFlags;
+  source?: "local" | "usdaFdc";
 };
 
 export type MealIngredient = {
