@@ -5,6 +5,47 @@ import type { FoodDetails, FoodHit, NutritionProvider } from "@/lib/nutrition/pr
 
 const BASE_URL = "https://api.nal.usda.gov/fdc/v1";
 
+export function isFdcApiKeyRequired(): boolean {
+  // Vercel sets VERCEL_ENV to: "production" | "preview" | "development"
+  const vercelEnv = process.env.VERCEL_ENV;
+  if (vercelEnv) return vercelEnv === "production";
+  return process.env.NODE_ENV === "production";
+}
+
+export class UsdaFdcMissingApiKeyError extends Error {
+  readonly name = "UsdaFdcMissingApiKeyError";
+  constructor() {
+    super(
+      "Missing FDC_API_KEY. Configure it in your deployment environment variables (server-side only).",
+    );
+  }
+}
+
+export class UsdaFdcRateLimitedError extends Error {
+  readonly name = "UsdaFdcRateLimitedError";
+  constructor() {
+    super("USDA FDC rate limit exceeded.");
+  }
+}
+
+export class UsdaFdcAuthError extends Error {
+  readonly name = "UsdaFdcAuthError";
+  readonly status: number;
+  constructor(status: number, message?: string) {
+    super(message || `USDA FDC authentication failed (${status}).`);
+    this.status = status;
+  }
+}
+
+export class UsdaFdcHttpError extends Error {
+  readonly name = "UsdaFdcHttpError";
+  readonly status: number;
+  constructor(status: number, message?: string) {
+    super(message || `USDA FDC request failed (${status}).`);
+    this.status = status;
+  }
+}
+
 type FdcSearchResponse = {
   foods?: Array<{
     fdcId: number;
@@ -45,7 +86,11 @@ async function fetchJson<T>(url: string): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    throw new Error(`USDA FDC request failed (${res.status}): ${body.slice(0, 300)}`);
+    if (res.status === 429) throw new UsdaFdcRateLimitedError();
+    if (res.status === 401 || res.status === 403) {
+      throw new UsdaFdcAuthError(res.status, body.slice(0, 300));
+    }
+    throw new UsdaFdcHttpError(res.status, body.slice(0, 300));
   }
   return (await res.json()) as T;
 }
@@ -83,8 +128,14 @@ export class UsdaFdcProvider implements NutritionProvider {
   private apiKey: string;
 
   constructor(apiKey?: string) {
-    // Per USDA docs, DEMO_KEY is allowed for exploration with lower limits.
-    this.apiKey = apiKey || process.env.FDC_API_KEY || "DEMO_KEY";
+    const configured = (apiKey ?? "").trim() || (process.env.FDC_API_KEY ?? "").trim();
+    if (!configured) {
+      if (isFdcApiKeyRequired()) throw new UsdaFdcMissingApiKeyError();
+      // Per USDA docs, DEMO_KEY is allowed for exploration with lower limits.
+      this.apiKey = "DEMO_KEY";
+      return;
+    }
+    this.apiKey = configured;
   }
 
   async search(query: string): Promise<FoodHit[]> {

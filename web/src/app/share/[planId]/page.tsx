@@ -25,7 +25,9 @@ export default async function SharePlanPage(props: {
   }
 
   const day1 = DEMO_PLAN.days[0];
-  const { ingredients, apiKeyMode, apiUsedFor } = await loadIngredientsWithUsda(INGREDIENTS);
+  const { ingredients, apiKeyMode, apiUsedFor, status } = await loadIngredientsWithUsda(
+    INGREDIENTS,
+  );
 
   return (
     <main>
@@ -48,6 +50,7 @@ export default async function SharePlanPage(props: {
           provider: "usdaFdc",
           apiKeyMode,
           apiUsedFor,
+          status,
           totalIngredients: ingredients.length,
         }}
       />

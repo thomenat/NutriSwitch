@@ -1,7 +1,12 @@
 import "server-only";
 
 import type { Ingredient } from "@/lib/nutrition/types";
-import { UsdaFdcProvider } from "@/lib/nutrition/providers/usdaFdc";
+import {
+  UsdaFdcAuthError,
+  UsdaFdcMissingApiKeyError,
+  UsdaFdcProvider,
+  UsdaFdcRateLimitedError,
+} from "@/lib/nutrition/providers/usdaFdc";
 import { FDC_MAP } from "@/data/fdcMap";
 
 const resolvedIdCache = new Map<string, string>();
@@ -12,12 +17,30 @@ export async function loadIngredientsWithUsda(
   ingredients: Ingredient[];
   apiUsedFor: number;
   apiKeyMode: "configured" | "demo_key";
+  status: "ok" | "missing_key" | "rate_limited" | "auth_error" | "error";
 }> {
-  const provider = new UsdaFdcProvider();
   const apiKeyMode = process.env.FDC_API_KEY ? "configured" : "demo_key";
+  let provider: UsdaFdcProvider;
+  try {
+    provider = new UsdaFdcProvider();
+  } catch (err) {
+    // In production we require an explicit key; in demo/preview, provider will fall back to DEMO_KEY.
+    if (err instanceof UsdaFdcMissingApiKeyError) {
+      return {
+        ingredients: baseIngredients,
+        apiUsedFor: 0,
+        apiKeyMode,
+        status: "missing_key",
+      };
+    }
+    return { ingredients: baseIngredients, apiUsedFor: 0, apiKeyMode, status: "error" };
+  }
 
   const byId = new Map(baseIngredients.map((i) => [i.id, i] as const));
   let apiUsedFor = 0;
+  let hadRateLimit = false;
+  let hadAuthError = false;
+  let hadError = false;
 
   const nextIngredients: Ingredient[] = await Promise.all(
     baseIngredients.map(async (ing) => {
@@ -42,7 +65,10 @@ export async function loadIngredientsWithUsda(
         const macros = await provider.getMacrosPer100g(externalId);
         apiUsedFor += 1;
         return { ...ing, macrosPer100g: macros, source: "usdaFdc" };
-      } catch {
+      } catch (err) {
+        if (err instanceof UsdaFdcRateLimitedError) hadRateLimit = true;
+        else if (err instanceof UsdaFdcAuthError) hadAuthError = true;
+        else hadError = true;
         // Fallback to local seed values.
         return ing;
       }
@@ -52,6 +78,9 @@ export async function loadIngredientsWithUsda(
   // Keep stable ordering and ensure any newly added ingredient IDs still exist.
   for (const i of nextIngredients) byId.set(i.id, i);
 
-  return { ingredients: nextIngredients, apiUsedFor, apiKeyMode };
+  const status: "ok" | "missing_key" | "rate_limited" | "auth_error" | "error" =
+    hadRateLimit ? "rate_limited" : hadAuthError ? "auth_error" : hadError ? "error" : "ok";
+
+  return { ingredients: nextIngredients, apiUsedFor, apiKeyMode, status };
 }
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { DietaryRestriction, Ingredient, Meal, PreserveMetric } from "@/lib/nutrition/types";
-import { mealTotals, recipeTotalsFor, scaleMacros, swapMealItem } from "@/lib/nutrition/calc";
+import { mealTotals, recipeTotalsFor, swapMealItem } from "@/lib/nutrition/calc";
 import { DIETARY_RESTRICTIONS, ingredientSatisfiesAll, recipeSatisfiesAll } from "@/lib/nutrition/diet";
 import { kitchenApprox } from "@/lib/nutrition/kitchen";
 
@@ -121,6 +121,7 @@ export function PlanClient(props: {
     provider: "usdaFdc";
     apiKeyMode: "configured" | "demo_key";
     apiUsedFor: number;
+    status: "ok" | "missing_key" | "rate_limited" | "auth_error" | "error";
     totalIngredients: number;
   };
 }) {
@@ -207,15 +208,14 @@ export function PlanClient(props: {
     setDietary((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
-  useEffect(() => {
+  const safeExpanded = useMemo<ExpandedRecipe | null>(() => {
     // If filters change and the currently expanded recipe no longer matches, collapse it.
-    if (!expanded) return;
+    if (!expanded) return null;
     const meal = meals.find((m) => m.id === expanded.mealId);
     const recipe = meal?.recipes[expanded.recipeIndex];
-    if (!meal || !recipe) return;
-    if (!recipeSatisfiesAll(recipe, ingredientsById, dietary)) {
-      setExpanded(null);
-    }
+    if (!meal || !recipe) return null;
+    if (!recipeSatisfiesAll(recipe, ingredientsById, dietary)) return null;
+    return expanded;
   }, [dietary, expanded, ingredientsById, meals]);
 
   function gramsToOz(grams: number): number {
@@ -250,12 +250,30 @@ export function PlanClient(props: {
         </p>
 
         {props.nutritionMeta && (
-          <div className="ns-muted text-sm">
-            Nutrition data: USDA FoodData Central{" "}
-            <span className="ns-chip bg-[var(--surface)] text-[11px] font-semibold">
-              {props.nutritionMeta.apiKeyMode === "configured" ? "API key" : "DEMO_KEY"}
-            </span>{" "}
-            · Loaded {props.nutritionMeta.apiUsedFor}/{props.nutritionMeta.totalIngredients} ingredients
+          <div className="flex flex-col gap-2">
+            <div className="ns-muted text-sm">
+              Nutrition data: USDA FoodData Central{" "}
+              <span className="ns-chip bg-[var(--surface)] text-[11px] font-semibold">
+                {props.nutritionMeta.apiKeyMode === "configured" ? "API key" : "DEMO_KEY"}
+              </span>{" "}
+              · Loaded {props.nutritionMeta.apiUsedFor}/{props.nutritionMeta.totalIngredients} ingredients
+            </div>
+
+            {props.nutritionMeta.status !== "ok" && (
+              <div className="rounded-xl border border-[color:var(--border)] bg-[var(--surface)] p-3 text-sm text-zinc-700">
+                <div className="font-semibold text-zinc-900">Nutrition provider notice</div>
+                <div className="mt-1 ns-muted">
+                  {props.nutritionMeta.status === "missing_key" &&
+                    "This deployment is missing FDC_API_KEY, so USDA lookups are disabled and local seed values are being used."}
+                  {props.nutritionMeta.status === "rate_limited" &&
+                    "USDA lookups were rate-limited, so some ingredients are using local seed values. Try again later or configure FDC_API_KEY."}
+                  {props.nutritionMeta.status === "auth_error" &&
+                    "The configured USDA API key was rejected, so USDA lookups are disabled and local seed values are being used."}
+                  {props.nutritionMeta.status === "error" &&
+                    "USDA lookups failed unexpectedly, so some ingredients are using local seed values."}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -343,7 +361,7 @@ export function PlanClient(props: {
               <div className="mt-5">
                 {(() => {
                   const expandedIndex =
-                    expanded?.mealId === meal.id ? expanded.recipeIndex : null;
+                    safeExpanded?.mealId === meal.id ? safeExpanded.recipeIndex : null;
 
                   const filteredRecipes = meal.recipes.filter((r) =>
                     recipeSatisfiesAll(r, ingredientsById, dietary),

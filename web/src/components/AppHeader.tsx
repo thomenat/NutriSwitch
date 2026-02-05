@@ -67,8 +67,10 @@ export function AppHeader() {
 
   useEffect(() => {
     // Close menu when route changes.
-    setOpen(false);
-  }, [pathname]);
+    if (!open) return;
+    const id = window.setTimeout(() => setOpen(false), 0);
+    return () => window.clearTimeout(id);
+  }, [open, pathname]);
 
   return (
     <>
