@@ -150,7 +150,7 @@ export function PlanClient(props: {
   const [preserve, setPreserve] = useState<PreserveMetric>("calories");
   const [unitPref, setUnitPref] = useState<UnitPreference>("metric");
   const [dietary, setDietary] = useState<DietaryRestriction[]>([]);
-  const [showMealMacros, setShowMealMacros] = useState<Record<string, boolean>>({});
+  const [showRecipeMacros, setShowRecipeMacros] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<ToastModel>(null);
 
   const swapSearchRef = useRef<HTMLInputElement | null>(null);
@@ -345,12 +345,6 @@ export function PlanClient(props: {
     return `${g} (${oz})`;
   }
 
-  function scrollToIngredients(mealId: string, recipeIndex: number) {
-    const el = document.getElementById(`ingredients-${mealId}-${recipeIndex}`);
-    if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
   useEffect(() => {
     if (!swapTarget) return;
     // Focus search when opening swap modal (pure DOM effect).
@@ -489,8 +483,6 @@ export function PlanClient(props: {
 
       <div className="flex flex-col gap-6">
         {meals.map((meal) => {
-          const totals = mealTotals(meal, ingredientsById);
-          const isMealMacrosVisible = Boolean(showMealMacros[meal.id]);
           return (
             <section
               key={meal.id}
@@ -504,32 +496,7 @@ export function PlanClient(props: {
                     <span className="ns-chip text-[11px] font-semibold">Meal</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    className="rounded-full border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-[var(--surface-2)]"
-                    aria-expanded={isMealMacrosVisible}
-                    onClick={() =>
-                      setShowMealMacros((prev) => ({
-                        ...prev,
-                        [meal.id]: !Boolean(prev[meal.id]),
-                      }))
-                    }
-                  >
-                    {isMealMacrosVisible ? "Hide macros" : "Show macros"}
-                  </button>
-                </div>
               </div>
-
-              {isMealMacrosVisible && (
-                <div className="mt-2 rounded-[16px] border border-[color:var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm">
-                  <div className="text-xs font-semibold tracking-wide ns-muted">MEAL TOTAL</div>
-                  <div className="mt-1 text-zinc-900">
-                    {fmt0(totals.calories)} kcal · P {fmt1(totals.protein)}g · C{" "}
-                    {fmt1(totals.carbs)}g · F {fmt1(totals.fat)}g
-                  </div>
-                </div>
-              )}
 
               <div className="mt-5">
                 {(() => {
@@ -618,6 +585,8 @@ export function PlanClient(props: {
                           <div className="border-t border-[color:var(--border)] p-4 sm:p-5">
                               {(() => {
                                 const recipeTotals = recipeTotalsFor(expandedRecipe, ingredientsById);
+                                const recipeKey = `${meal.id}:${expandedRecipe.id}`;
+                                const isRecipeMacrosVisible = Boolean(showRecipeMacros[recipeKey]);
                                 return (
                                   <div className="ns-blob overflow-hidden rounded-[18px] border border-[color:var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)]">
                                     <div className="relative p-4 sm:p-5">
@@ -657,33 +626,73 @@ export function PlanClient(props: {
                                           </div>
                                         </div>
 
-                                        {isMealMacrosVisible && (
-                                          <div className="mt-4 rounded-[16px] border border-[color:var(--border)] bg-white/60 px-3 py-3">
+                                        <div className="mt-4 flex items-center justify-between gap-3">
+                                          <div className="text-xs font-semibold tracking-wide ns-muted">
+                                            MACROS
+                                          </div>
+                                          <button
+                                            type="button"
+                                            className="rounded-full border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-[var(--surface-2)]"
+                                            aria-expanded={isRecipeMacrosVisible}
+                                            onClick={() =>
+                                              setShowRecipeMacros((prev) => ({
+                                                ...prev,
+                                                [recipeKey]: !Boolean(prev[recipeKey]),
+                                              }))
+                                            }
+                                          >
+                                            {isRecipeMacrosVisible ? "Hide macros" : "Show macros"}
+                                          </button>
+                                        </div>
+
+                                        {isRecipeMacrosVisible && (
+                                          <div className="mt-3 rounded-[16px] border border-[color:var(--border)] bg-white/60 px-3 py-3">
                                             <div className="text-[11px] font-semibold ns-muted">
                                               YOUR PORTION (MACROS)
                                             </div>
-                                            <div className="mt-3">
+                                            <div className="mt-3 grid gap-4 md:grid-cols-[170px_1fr] md:items-center">
                                               <MacroPizza
                                                 calories={recipeTotals.calories}
                                                 proteinGrams={recipeTotals.protein}
                                                 carbsGrams={recipeTotals.carbs}
                                                 fatGrams={recipeTotals.fat}
                                               />
+
+                                              <div className="flex flex-col gap-2">
+                                                <div className="flex items-center justify-between rounded-[14px] border border-[color:var(--border)] bg-[var(--surface)] px-3 py-3 text-sm font-semibold text-zinc-900">
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent-sky)]" />
+                                                    carbs
+                                                  </div>
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="ns-muted">{fmt1(recipeTotals.carbs)}g</span>
+                                                  </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between rounded-[14px] border border-[color:var(--border)] bg-[var(--surface)] px-3 py-3 text-sm font-semibold text-zinc-900">
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent-mint)]" />
+                                                    protein
+                                                  </div>
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="ns-muted">{fmt1(recipeTotals.protein)}g</span>
+                                                  </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between rounded-[14px] border border-[color:var(--border)] bg-[var(--surface)] px-3 py-3 text-sm font-semibold text-zinc-900">
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent-pink)]" />
+                                                    fat
+                                                  </div>
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="ns-muted">{fmt1(recipeTotals.fat)}g</span>
+                                                  </div>
+                                                </div>
+                                              </div>
                                             </div>
                                           </div>
                                         )}
 
-                                        <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                                          <button
-                                            type="button"
-                                            className="ns-btn h-11 bg-[var(--surface)] px-4 text-sm text-[color:var(--foreground)] hover:bg-[var(--surface-2)]"
-                                            onClick={() =>
-                                              scrollToIngredients(meal.id, expandedIndex)
-                                            }
-                                          >
-                                            Substitute ingredients
-                                          </button>
-                                        </div>
                                       </div>
                                     </div>
                                   </div>
@@ -753,7 +762,7 @@ export function PlanClient(props: {
                                               })
                                             }
                                           >
-                                            Swap…
+                                            Switch
                                           </button>
                                         </div>
                                       </div>
