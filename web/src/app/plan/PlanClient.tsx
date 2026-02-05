@@ -297,7 +297,15 @@ export function PlanClient(props: {
 
   function toggleRecipe(mealId: string, recipeIndex: number) {
     setExpanded((prev) => {
-      if (prev && prev.mealId === mealId && prev.recipeIndex === recipeIndex) return null;
+      if (prev && prev.mealId === mealId && prev.recipeIndex === recipeIndex) {
+        // When collapsing, keep context by scrolling back to the meal header.
+        window.setTimeout(() => {
+          document
+            .getElementById(`meal-section-${mealId}`)
+            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 0);
+        return null;
+      }
       return { mealId, recipeIndex };
     });
   }
@@ -486,7 +494,8 @@ export function PlanClient(props: {
           return (
             <section
               key={meal.id}
-              className="ns-card ns-blob p-5"
+              id={`meal-section-${meal.id}`}
+              className="ns-card ns-blob scroll-mt-24 p-5"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
@@ -581,7 +590,7 @@ export function PlanClient(props: {
                       {expandedRecipe && expandedIndex !== null && expandedAllowed && (
                         <div
                           id={`recipe-card-${meal.id}-${expandedIndex}`}
-                          className="ns-blob overflow-hidden rounded-[22px] border border-[color:var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)]"
+                          className="ns-blob scroll-mt-24 overflow-hidden rounded-[22px] border border-[color:var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)]"
                         >
                           <button
                             type="button"
