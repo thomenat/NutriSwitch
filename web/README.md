@@ -46,6 +46,41 @@ FDC_API_KEY=your_real_usda_fdc_api_key_here
 
 3. Restart `npm run dev` after changing env vars.
 
+## Images (Supabase Storage, free tier)
+
+For a scalable, public image library (without storing images in git), this app can use **Supabase Storage**.
+
+### What you get
+- Uploads go **directly to Supabase Storage** via a signed upload URL (your server never receives the file bytes).
+- The app serves images from Supabase's CDN endpoint (public bucket).
+
+### Supabase setup
+1. Create a Supabase project (free tier).
+2. Create a **public** Storage bucket named `recipe-images` (or change `SUPABASE_STORAGE_BUCKET`).
+3. In Supabase → Project Settings → API, copy:
+   - Project URL → `SUPABASE_URL`
+   - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (keep server-side only)
+
+### Local setup
+1. Create `.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+2. Set these values in `web/.env.local`:
+
+```dotenv
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+SUPABASE_STORAGE_BUCKET=recipe-images
+```
+
+3. Restart `npm run dev`.
+
+### API endpoints
+- `POST /api/images/upload-url`: returns `{ uploadUrl, publicUrl, path }` for direct upload to Supabase Storage.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
