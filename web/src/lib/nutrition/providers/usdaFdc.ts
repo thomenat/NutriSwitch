@@ -54,17 +54,20 @@ type FdcSearchResponse = {
   }>;
 };
 
+type FdcFoodNutrient = {
+  amount?: number;
+  value?: number;
+  nutrient?: {
+    name?: string;
+    unitName?: string;
+    number?: string;
+  };
+};
+
 type FdcFoodResponse = {
   fdcId: number;
   description?: string;
-  foodNutrients?: Array<{
-    amount?: number;
-    nutrient?: {
-      name?: string;
-      unitName?: string;
-      number?: string;
-    };
-  }>;
+  foodNutrients?: FdcFoodNutrient[];
 };
 
 const foodCache = new Map<number, Promise<FdcFoodResponse>>();
@@ -79,11 +82,29 @@ function buildUrl(path: string, apiKey: string, params?: Record<string, string>)
   return url.toString();
 }
 
+const FETCH_TIMEOUT_MS = 15_000;
+
 async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, {
-    // Cache for a day (fine for demo; adjust later).
-    next: { revalidate: 60 * 60 * 24 },
-  });
+  const ac = new AbortController();
+  const timeoutId = setTimeout(() => ac.abort(), FETCH_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      cache: "no-store",
+      signal: ac.signal,
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "NutriSwitch/1.0 (https://github.com/nutriswitch)",
+      },
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new UsdaFdcHttpError(408, "Request timed out (USDA FDC took too long to respond).");
+    }
+    throw err;
+  }
+  clearTimeout(timeoutId);
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     if (res.status === 429) throw new UsdaFdcRateLimitedError();
@@ -93,6 +114,12 @@ async function fetchJson<T>(url: string): Promise<T> {
     throw new UsdaFdcHttpError(res.status, body.slice(0, 300));
   }
   return (await res.json()) as T;
+}
+
+function nutrientAmount(n: FdcFoodNutrient | undefined): number {
+  if (!n) return 0;
+  const v = n.amount ?? (n as { value?: number }).value;
+  return Number(v ?? 0);
 }
 
 function normalizeMacrosPer100g(food: FdcFoodResponse): Macros {
@@ -114,13 +141,13 @@ function normalizeMacrosPer100g(food: FdcFoodResponse): Macros {
   const carbs = byName("Carbohydrate, by difference");
   const fat = byName("Total lipid (fat)");
 
-  const calories = Number(energyKcal?.amount ?? 0);
+  const calories = nutrientAmount(energyKcal);
 
   return {
     calories: Number.isFinite(calories) ? calories : 0,
-    protein: Number(protein?.amount ?? 0) || 0,
-    carbs: Number(carbs?.amount ?? 0) || 0,
-    fat: Number(fat?.amount ?? 0) || 0,
+    protein: nutrientAmount(protein) || 0,
+    carbs: nutrientAmount(carbs) || 0,
+    fat: nutrientAmount(fat) || 0,
   };
 }
 
@@ -159,11 +186,14 @@ export class UsdaFdcProvider implements NutritionProvider {
         .get(key)!;
 
     const json = await resp;
-    return (json.foods ?? []).map((f) => ({
-      externalId: String(f.fdcId),
-      description: f.description,
-      dataType: f.dataType,
-    }));
+    const foods = Array.isArray(json.foods) ? json.foods : [];
+    return foods
+      .filter((f): f is typeof f & { fdcId: number } => Number.isFinite(f?.fdcId))
+      .map((f) => ({
+        externalId: String(f.fdcId),
+        description: f.description ?? "",
+        dataType: f.dataType,
+      }));
   }
 
   async getFoodById(externalId: string): Promise<FoodDetails> {

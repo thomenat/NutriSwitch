@@ -7,9 +7,8 @@ export const dynamic = "force-dynamic";
 
 export default async function PlanPage() {
   const day1 = DEMO_PLAN.days[0];
-  const { ingredients, apiKeyMode, apiUsedFor, status } = await loadIngredientsWithUsda(
-    INGREDIENTS,
-  );
+  const { ingredients, apiKeyMode, apiUsedFor, status, errorDetail } =
+    await loadIngredientsWithUsda(INGREDIENTS);
 
   return (
     <main>
@@ -22,6 +21,7 @@ export default async function PlanPage() {
           apiUsedFor,
           status,
           totalIngredients: ingredients.length,
+          errorDetail,
         }}
       />
     </main>

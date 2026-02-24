@@ -134,6 +134,7 @@ export function PlanClient(props: {
     apiUsedFor: number;
     status: "ok" | "missing_key" | "rate_limited" | "auth_error" | "error";
     totalIngredients: number;
+    errorDetail?: string;
   };
 }) {
   const ingredientsById = useMemo(
@@ -419,31 +420,11 @@ export function PlanClient(props: {
         </p>
 
         {props.nutritionMeta && (
-          <div className="flex flex-col gap-2">
-            <div className="ns-muted text-sm">
-              Nutrition data: USDA FoodData Central{" "}
-              <span className="ns-chip bg-[var(--surface)] text-[11px] font-semibold">
-                {props.nutritionMeta.apiKeyMode === "configured" ? "API key" : "DEMO_KEY"}
-              </span>{" "}
-              · Loaded {props.nutritionMeta.apiUsedFor}/{props.nutritionMeta.totalIngredients} ingredients
-            </div>
-
-            {props.nutritionMeta.status !== "ok" && (
-              <div className="rounded-xl border border-[color:var(--border)] bg-[var(--surface)] p-3 text-sm text-zinc-700">
-                <div className="font-semibold text-zinc-900">Nutrition provider notice</div>
-                <div className="mt-1 ns-muted">
-                  {props.nutritionMeta.status === "missing_key" &&
-                    "This deployment is missing FDC_API_KEY, so USDA lookups are disabled and local seed values are being used."}
-                  {props.nutritionMeta.status === "rate_limited" &&
-                    "USDA lookups were rate-limited, so some ingredients are using local seed values. Try again later or configure FDC_API_KEY."}
-                  {props.nutritionMeta.status === "auth_error" &&
-                    "The configured USDA API key was rejected, so USDA lookups are disabled and local seed values are being used."}
-                  {props.nutritionMeta.status === "error" &&
-                    "USDA lookups failed unexpectedly, so some ingredients are using local seed values."}
-                </div>
-              </div>
-            )}
-          </div>
+          <p className="ns-muted text-sm">
+            {props.nutritionMeta.status === "ok"
+              ? "Nutrition data from USDA FoodData Central."
+              : "Nutrition data from USDA where available; some values are estimates."}
+          </p>
         )}
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
