@@ -41,6 +41,7 @@ export const DEMO_PLAN: MealPlan = {
             {
               id: "breakfast-recipe-3",
               name: "Simple carbs",
+              imageQuery: "oats banana breakfast bowl",
               imageSrc: "/recipes/simple-carbs.svg",
               imageAlt: "Simple carbs illustration",
               servesText: "1 snack",
@@ -59,6 +60,7 @@ export const DEMO_PLAN: MealPlan = {
             {
               id: "lunch-recipe-1",
               name: "Protein plate",
+              imageQuery: "grilled chicken breast plate lunch",
               imageSrc: "/recipes/protein-plate.svg",
               imageAlt: "Protein plate illustration",
               servesText: "1 plate",
@@ -68,6 +70,7 @@ export const DEMO_PLAN: MealPlan = {
             {
               id: "lunch-recipe-2",
               name: "Carb base",
+              imageQuery: "white rice bowl meal",
               imageSrc: "/recipes/carb-base.svg",
               imageAlt: "Carb base illustration",
               servesText: "1 bowl",
@@ -77,7 +80,7 @@ export const DEMO_PLAN: MealPlan = {
             {
               id: "lunch-recipe-3",
               name: "Veg + fat",
-              imageQuery: "broccoli olive oil vegetables",
+              imageQuery: "roasted vegetables olive oil plate",
               imageSrc: "/recipes/veg-fat.svg",
               imageAlt: "Vegetables and fat illustration",
               servesText: "1 side",
@@ -96,6 +99,7 @@ export const DEMO_PLAN: MealPlan = {
             {
               id: "dinner-recipe-1",
               name: "Salmon",
+              imageQuery: "grilled salmon fillet plate",
               imageSrc: "/recipes/salmon.svg",
               imageAlt: "Salmon bowl illustration",
               servesText: "1 bowl",
@@ -105,6 +109,7 @@ export const DEMO_PLAN: MealPlan = {
             {
               id: "dinner-recipe-2",
               name: "Sweet potato",
+              imageQuery: "baked sweet potato side dish",
               imageSrc: "/recipes/sweet-potato.svg",
               imageAlt: "Sweet potato illustration",
               servesText: "1 side",
@@ -114,7 +119,7 @@ export const DEMO_PLAN: MealPlan = {
             {
               id: "dinner-recipe-3",
               name: "Greens",
-              imageQuery: "steamed broccoli greens",
+              imageQuery: "steamed broccoli side dish",
               imageSrc: "/recipes/greens.svg",
               imageAlt: "Greens illustration",
               servesText: "1 side",
