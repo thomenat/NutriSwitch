@@ -1,5 +1,7 @@
 import "server-only";
 
+import type { MealPlan, Meal, Recipe } from "@/lib/nutrition/types";
+
 export type StockImageResult = {
   url: string;
   alt: string;
@@ -61,4 +63,36 @@ export async function resolveStockImage(query: string): Promise<StockImageResult
     credit,
     creditUrl,
   };
+}
+
+/**
+ * Resolves recipe images for every recipe in a plan (all days). Returns a new MealPlan
+ * with imageSrc/imageAlt/imageCredit/imageCreditUrl set where Unsplash returns a result.
+ * Use this for any plan source (demo, share link, or future DB/upload) before passing to the UI.
+ */
+export async function resolvePlanForDisplay(plan: MealPlan): Promise<MealPlan> {
+  const days = await Promise.all(
+    plan.days.map(async (day) => ({
+      ...day,
+      meals: await Promise.all(
+        day.meals.map(async (meal): Promise<Meal> => ({
+          ...meal,
+          recipes: await Promise.all(
+            meal.recipes.map(async (recipe): Promise<Recipe> => {
+              const stock = await resolveStockImage(recipe.imageQuery ?? recipe.name);
+              if (!stock) return recipe;
+              return {
+                ...recipe,
+                imageSrc: stock.url,
+                imageAlt: stock.alt,
+                imageCredit: stock.credit,
+                imageCreditUrl: stock.creditUrl,
+              };
+            }),
+          ),
+        })),
+      ),
+    })),
+  );
+  return { ...plan, days };
 }

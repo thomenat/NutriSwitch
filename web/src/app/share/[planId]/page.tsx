@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DEMO_PLAN } from "@/data/demoPlan";
 import { INGREDIENTS } from "@/data/ingredients";
 import { PlanClient } from "@/app/plan/PlanClient";
+import { resolvePlanForDisplay } from "@/lib/images/unsplash";
 import { loadIngredientsWithUsda } from "@/lib/nutrition/loadIngredients";
 
 export default async function SharePlanPage(props: {
@@ -24,10 +25,11 @@ export default async function SharePlanPage(props: {
     );
   }
 
-  const day1 = DEMO_PLAN.days[0];
-  const { ingredients, apiKeyMode, apiUsedFor, status } = await loadIngredientsWithUsda(
-    INGREDIENTS,
-  );
+  const [planWithImages, { ingredients, apiKeyMode, apiUsedFor, status, errorDetail }] =
+    await Promise.all([
+      resolvePlanForDisplay(DEMO_PLAN),
+      loadIngredientsWithUsda(INGREDIENTS),
+    ]);
 
   return (
     <main>
@@ -45,13 +47,14 @@ export default async function SharePlanPage(props: {
       </div>
       <PlanClient
         ingredients={ingredients}
-        initialMeals={day1.meals}
+        initialMeals={planWithImages.days[0].meals}
         nutritionMeta={{
           provider: "usdaFdc",
           apiKeyMode,
           apiUsedFor,
           status,
           totalIngredients: ingredients.length,
+          errorDetail,
         }}
       />
     </main>
