@@ -15,6 +15,7 @@ export const DEMO_PLAN: MealPlan = {
             {
               id: "breakfast-recipe-1",
               name: "Overnight oats",
+              imageQuery: "overnight oats bowl",
               imageSrc: "/recipes/overnight-oats.svg",
               imageAlt: "Overnight oats bowl illustration",
               servesText: "1 bowl",
@@ -27,6 +28,7 @@ export const DEMO_PLAN: MealPlan = {
             {
               id: "breakfast-recipe-2",
               name: "Banana bowl",
+              imageQuery: "banana yogurt bowl",
               imageSrc: "/recipes/banana-bowl.svg",
               imageAlt: "Banana bowl illustration",
               servesText: "1 bowl",
@@ -75,6 +77,7 @@ export const DEMO_PLAN: MealPlan = {
             {
               id: "lunch-recipe-3",
               name: "Veg + fat",
+              imageQuery: "broccoli olive oil vegetables",
               imageSrc: "/recipes/veg-fat.svg",
               imageAlt: "Vegetables and fat illustration",
               servesText: "1 side",
@@ -111,6 +114,7 @@ export const DEMO_PLAN: MealPlan = {
             {
               id: "dinner-recipe-3",
               name: "Greens",
+              imageQuery: "steamed broccoli greens",
               imageSrc: "/recipes/greens.svg",
               imageAlt: "Greens illustration",
               servesText: "1 side",

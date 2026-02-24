@@ -33,6 +33,12 @@ export type Recipe = {
   name: string;
   imageSrc: string;
   imageAlt: string;
+  /** Optional search query for stock photo (e.g. "overnight oats bowl"). Falls back to name. */
+  imageQuery?: string;
+  /** Unsplash photographer name for attribution. */
+  imageCredit?: string;
+  /** Unsplash photographer profile URL (with UTM params). */
+  imageCreditUrl?: string;
   servesText?: string;
   totalTimeMinutes?: number;
   items: MealIngredient[];

@@ -528,6 +528,20 @@ export function PlanClient(props: {
                             <span aria-hidden="true">{isExpanded ? "▴" : "▾"}</span>
                           </div>
                         </button>
+                        {recipe.imageCredit && (
+                          <p className="mt-1.5 text-[10px] ns-muted">
+                            Photo by{" "}
+                            <a
+                              href={recipe.imageCreditUrl ?? "#"}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline hover:text-zinc-700"
+                            >
+                              {recipe.imageCredit}
+                            </a>{" "}
+                            on Unsplash
+                          </p>
+                        )}
                       </div>
                     );
                   };
@@ -561,6 +575,20 @@ export function PlanClient(props: {
                               </div>
                             </div>
                           </button>
+                          {expandedRecipe.imageCredit && (
+                            <p className="border-t border-[color:var(--border)] px-4 py-2 text-[10px] ns-muted">
+                              Photo by{" "}
+                              <a
+                                href={expandedRecipe.imageCreditUrl ?? "#"}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline hover:text-zinc-700"
+                              >
+                                {expandedRecipe.imageCredit}
+                              </a>{" "}
+                              on Unsplash
+                            </p>
+                          )}
 
                             {/* Recipe summary (like screenshot) */}
                           <div className="border-t border-[color:var(--border)] p-4 sm:p-5">
@@ -813,16 +841,31 @@ export function PlanClient(props: {
           <div className="w-full max-w-xl overflow-hidden rounded-[22px] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
             <div className="flex items-start justify-between gap-4 border-b border-[color:var(--border)] p-5">
               <div className="flex items-start gap-3">
-                <div className="h-12 w-12 overflow-hidden rounded-[16px] border border-[color:var(--border)] bg-[var(--surface-2)]">
-                  <div className="relative h-full w-full">
-                    <Image
-                      src={activeRecipe.imageSrc}
-                      alt={activeRecipe.imageAlt}
-                      fill
-                      sizes="48px"
-                      className="object-cover"
-                    />
+                <div className="flex flex-col gap-0.5">
+                  <div className="h-12 w-12 overflow-hidden rounded-[16px] border border-[color:var(--border)] bg-[var(--surface-2)]">
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={activeRecipe.imageSrc}
+                        alt={activeRecipe.imageAlt}
+                        fill
+                        sizes="48px"
+                        className="object-cover"
+                      />
+                    </div>
                   </div>
+                  {activeRecipe.imageCredit && (
+                    <p className="text-[9px] ns-muted">
+                      <a
+                        href={activeRecipe.imageCreditUrl ?? "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                      >
+                        {activeRecipe.imageCredit}
+                      </a>{" "}
+                      / Unsplash
+                    </p>
+                  )}
                 </div>
                 <h3 className="text-lg font-semibold">Swap ingredient</h3>
                 <p className="ns-muted mt-1 text-sm">
