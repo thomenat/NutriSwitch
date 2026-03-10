@@ -113,7 +113,7 @@ type ExpandedRecipe = {
   recipeIndex: number;
 };
 
-type UnitPreference = "metric" | "imperial" | "both";
+type UnitPreference = "metric" | "imperial";
 
 type ToastModel =
   | {
@@ -342,8 +342,7 @@ export function PlanClient(props: {
     const g = `${fmt0(grams)} g`;
     const oz = `${fmtOz(gramsToOz(grams))} oz`;
     if (unitPref === "metric") return g;
-    if (unitPref === "imperial") return oz;
-    return `${g} (${oz})`;
+    return oz;
   }
 
   useEffect(() => {
@@ -636,12 +635,17 @@ export function PlanClient(props: {
                                         </div>
 
                                         <div className="mt-4 flex items-center justify-between gap-3">
-                                          <div className="text-xs font-semibold tracking-wide ns-muted">
-                                            MACROS
-                                          </div>
+                                          {isRecipeMacrosVisible && (
+                                            <div className="text-xs font-semibold tracking-wide ns-muted">
+                                              MACROS
+                                            </div>
+                                          )}
                                           <button
                                             type="button"
-                                            className="rounded-full border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-[var(--surface-2)]"
+                                            className={clsx(
+                                              "rounded-full border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-[var(--surface-2)]",
+                                              !isRecipeMacrosVisible && "ml-auto",
+                                            )}
                                             aria-expanded={isRecipeMacrosVisible}
                                             onClick={() =>
                                               setShowRecipeMacros((prev) => ({
@@ -720,28 +724,47 @@ export function PlanClient(props: {
                                     </h3>
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    <span className="ns-muted text-sm">Units</span>
-                                    <div className="inline-flex overflow-hidden rounded-full border border-[color:var(--border)] bg-[var(--surface)]">
-                                      {([
-                                        ["metric", "Metric"],
-                                        ["imperial", "Imperial"],
-                                        ["both", "Both"],
-                                      ] as const).map(([value, label]) => (
-                                        <button
-                                          key={value}
-                                          type="button"
+                                    <button
+                                      type="button"
+                                      className="flex items-center gap-2 text-xs font-semibold"
+                                      onClick={() =>
+                                        setUnitPref((prev) => (prev === "metric" ? "imperial" : "metric"))
+                                      }
+                                      aria-label="Toggle units between metric and imperial"
+                                      aria-pressed={unitPref === "imperial"}
+                                    >
+                                      <span
+                                        className={clsx(
+                                          "text-[11px]",
+                                          unitPref === "metric" ? "text-zinc-900" : "ns-muted",
+                                        )}
+                                      >
+                                        Metric
+                                      </span>
+                                      <div
+                                        className={clsx(
+                                          "relative inline-flex h-5 w-10 shrink-0 items-center rounded-full border transition-colors cursor-pointer",
+                                          unitPref === "metric"
+                                            ? "border-[var(--accent-sky)] bg-[var(--accent-sky)]/20"
+                                            : "border-[var(--accent-pink)] bg-[var(--accent-pink)]/25",
+                                        )}
+                                      >
+                                        <span
                                           className={clsx(
-                                            "px-3 py-2 text-xs font-semibold",
-                                            unitPref === value
-                                              ? "bg-[var(--surface-2)] text-zinc-900"
-                                              : "text-zinc-700 hover:bg-[var(--surface-2)]",
+                                            "absolute h-4 w-4 rounded-full bg-white shadow transition-transform",
+                                            unitPref === "metric" ? "translate-x-0.5" : "translate-x-5",
                                           )}
-                                          onClick={() => setUnitPref(value)}
-                                        >
-                                          {label}
-                                        </button>
-                                      ))}
-                                    </div>
+                                        />
+                                      </div>
+                                      <span
+                                        className={clsx(
+                                          "text-[11px]",
+                                          unitPref === "imperial" ? "text-zinc-900" : "ns-muted",
+                                        )}
+                                      >
+                                        Imperial
+                                      </span>
+                                    </button>
                                   </div>
                                 </div>
                               </div>
