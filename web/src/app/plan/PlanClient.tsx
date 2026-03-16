@@ -147,6 +147,7 @@ export function PlanClient(props: {
   const [swapTarget, setSwapTarget] = useState<SwapTarget | null>(null);
   const [swapToIngredientId, setSwapToIngredientId] = useState<string>("");
   const [swapQuery, setSwapQuery] = useState<string>("");
+  const [swapListOpen, setSwapListOpen] = useState<boolean>(false);
   const [swapScope, setSwapScope] = useState<"item" | "plan">("item");
   const [preserve, setPreserve] = useState<PreserveMetric>("calories");
   const [unitPref, setUnitPref] = useState<UnitPreference>("metric");
@@ -723,48 +724,53 @@ export function PlanClient(props: {
                                       Ingredients
                                     </h3>
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      type="button"
-                                      className="flex items-center gap-2 text-xs font-semibold"
-                                      onClick={() =>
-                                        setUnitPref((prev) => (prev === "metric" ? "imperial" : "metric"))
-                                      }
-                                      aria-label="Toggle units between metric and imperial"
-                                      aria-pressed={unitPref === "imperial"}
-                                    >
-                                      <span
-                                        className={clsx(
-                                          "text-[11px]",
-                                          unitPref === "metric" ? "text-zinc-900" : "ns-muted",
-                                        )}
-                                      >
-                                        Metric
-                                      </span>
-                                      <div
-                                        className={clsx(
-                                          "relative inline-flex h-5 w-10 shrink-0 items-center rounded-full border transition-colors cursor-pointer",
-                                          unitPref === "metric"
-                                            ? "border-[var(--accent-sky)] bg-[var(--accent-sky)]/20"
-                                            : "border-[var(--accent-pink)] bg-[var(--accent-pink)]/25",
-                                        )}
+                                  <div className="flex flex-col items-end gap-1">
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        className="flex items-center gap-2 text-xs font-semibold"
+                                        onClick={() =>
+                                          setUnitPref((prev) => (prev === "metric" ? "imperial" : "metric"))
+                                        }
+                                        aria-label="Toggle units between metric and imperial"
+                                        aria-pressed={unitPref === "imperial"}
                                       >
                                         <span
                                           className={clsx(
-                                            "absolute h-4 w-4 rounded-full bg-white shadow transition-transform",
-                                            unitPref === "metric" ? "translate-x-0.5" : "translate-x-5",
+                                            "text-[11px]",
+                                            unitPref === "metric" ? "text-zinc-900" : "ns-muted",
                                           )}
-                                        />
-                                      </div>
-                                      <span
-                                        className={clsx(
-                                          "text-[11px]",
-                                          unitPref === "imperial" ? "text-zinc-900" : "ns-muted",
-                                        )}
-                                      >
-                                        Imperial
-                                      </span>
-                                    </button>
+                                        >
+                                          Metric
+                                        </span>
+                                        <div
+                                          className={clsx(
+                                            "relative inline-flex h-5 w-10 shrink-0 items-center rounded-full border transition-colors cursor-pointer",
+                                            unitPref === "metric"
+                                              ? "border-[var(--accent-sky)] bg-[var(--accent-sky)]/20"
+                                              : "border-[var(--accent-pink)] bg-[var(--accent-pink)]/25",
+                                          )}
+                                        >
+                                          <span
+                                            className={clsx(
+                                              "absolute h-4 w-4 rounded-full bg-white shadow transition-transform",
+                                              unitPref === "metric" ? "translate-x-0.5" : "translate-x-5",
+                                            )}
+                                          />
+                                        </div>
+                                        <span
+                                          className={clsx(
+                                            "text-[11px]",
+                                            unitPref === "imperial" ? "text-zinc-900" : "ns-muted",
+                                          )}
+                                        >
+                                          Imperial
+                                        </span>
+                                      </button>
+                                    </div>
+                                    <p className="text-[10px] ns-muted">
+                                      Affects how amounts are shown here, not the underlying calculations.
+                                    </p>
                                   </div>
                                 </div>
                               </div>
@@ -785,7 +791,7 @@ export function PlanClient(props: {
                                         </div>
                                         <div className="mt-1 flex items-center gap-2">
                                           <button
-                                            className="rounded-full border border-[color:var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-semibold text-zinc-700 hover:bg-[var(--surface-2)]"
+                                            className="inline-flex items-center gap-1 rounded-full border border-[color:var(--border)] bg-[var(--surface)] px-3 py-1 text-xs font-semibold text-zinc-700 hover:bg-[var(--surface-2)]"
                                             onClick={() =>
                                               openSwapModal({
                                                 mealId: meal.id,
@@ -794,7 +800,8 @@ export function PlanClient(props: {
                                               })
                                             }
                                           >
-                                            Switch
+                                            <span aria-hidden="true">↔</span>
+                                            <span>Swap</span>
                                           </button>
                                         </div>
                                       </div>
@@ -861,10 +868,27 @@ export function PlanClient(props: {
             if (e.target === e.currentTarget) closeSwapModal();
           }}
         >
-          <div className="w-full max-w-xl overflow-hidden rounded-[22px] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
+          <div className="flex w-full max-w-xl max-h-[min(640px,calc(100vh-2rem))] flex-col overflow-hidden rounded-[22px] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
             <div className="flex items-start justify-between gap-4 border-b border-[color:var(--border)] p-5">
-              <div className="flex items-start gap-3">
-                <div className="flex flex-col gap-0.5">
+              <div className="flex flex-1 items-start gap-3">
+                <div className="flex-1 space-y-1">
+                  <h3 className="text-lg font-semibold text-zinc-900">Swap ingredient</h3>
+                  <p className="text-xs font-semibold ns-muted">
+                    {activeMeal.name} · {activeRecipe.name}
+                  </p>
+                  <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-[var(--surface-2)] px-3 py-1 text-xs font-medium text-zinc-900">
+                    <span className="ns-muted">From</span>
+                    <span>{activeFromIngredient.name}</span>
+                    <span className="ns-muted">({fmt0(activeItem.grams)}g)</span>
+                    {activeToIngredient && (
+                      <>
+                        <span className="ns-muted">→</span>
+                        <span>{activeToIngredient.name}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1">
                   <div className="h-12 w-12 overflow-hidden rounded-[16px] border border-[color:var(--border)] bg-[var(--surface-2)]">
                     <div className="relative h-full w-full">
                       <Image
@@ -890,14 +914,6 @@ export function PlanClient(props: {
                     </p>
                   )}
                 </div>
-                <h3 className="text-lg font-semibold">Swap ingredient</h3>
-                <p className="ns-muted mt-1 text-sm">
-                  Meal: <span className="font-medium text-zinc-900">{activeMeal.name}</span> · Recipe:{" "}
-                  <span className="font-medium text-zinc-900">{activeRecipe.name}</span>
-                  <br />
-                  You’re swapping <span className="font-medium text-zinc-900">{activeFromIngredient.name}</span>{" "}
-                  ({fmt0(activeItem.grams)}g)
-                </p>
               </div>
               <button
                 className="rounded-full border border-[color:var(--border)] bg-[var(--surface)] p-2 text-zinc-700 hover:bg-[var(--surface-2)]"
@@ -908,77 +924,160 @@ export function PlanClient(props: {
               </button>
             </div>
 
-            <div className="flex flex-col gap-5 p-5">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-zinc-900">Substitute</span>
-                  <input
-                    ref={swapSearchRef}
-                    className="h-10 rounded-[16px] border border-[color:var(--border)] bg-[var(--surface)] px-3 text-sm"
-                    placeholder="Search ingredients…"
-                    value={swapQuery}
-                    onChange={(e) => setSwapQuery(e.target.value)}
-                    aria-label="Search substitute ingredients"
-                  />
-                  <select
-                    className="h-10 rounded-[16px] border border-[color:var(--border)] bg-[var(--surface)] px-3"
-                    value={swapToIngredientId}
-                    onChange={(e) => setSwapToIngredientId(e.target.value)}
-                  >
-                    {swapOptions.map((i) => (
-                        <option key={i.id} value={i.id}>
-                          {i.name}
-                        </option>
-                    ))}
-                  </select>
-                  {swapOptions.length === 0 && (
-                    <div className="text-xs ns-muted">
-                      No substitutes match your diet filters/search.
-                    </div>
-                  )}
-                  {activeToIngredient && (
-                    <div className="rounded-[16px] border border-[color:var(--border)] bg-[var(--surface-2)] p-3 text-xs text-zinc-700">
-                      <div className="font-semibold text-zinc-900">Selected substitute</div>
-                      <div className="mt-1 ns-muted">
-                        Per 100g: {fmt0(activeToIngredient.macrosPer100g.calories)} kcal · P{" "}
-                        {fmt1(activeToIngredient.macrosPer100g.protein)}g · C{" "}
-                        {fmt1(activeToIngredient.macrosPer100g.carbs)}g · F{" "}
-                        {fmt1(activeToIngredient.macrosPer100g.fat)}g
-                      </div>
-                    </div>
-                  )}
-                </label>
-
-                <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-zinc-900">Preserve</span>
-                  <select
-                    className="h-10 rounded-[16px] border border-[color:var(--border)] bg-[var(--surface)] px-3"
-                    value={preserve}
-                    onChange={(e) => setPreserve(e.target.value as PreserveMetric)}
-                  >
-                    <option value="calories">Calories</option>
-                    <option value="protein">Protein</option>
-                    <option value="carbs">Carbs</option>
-                    <option value="fat">Fat</option>
-                  </select>
-                </label>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-zinc-900">Apply to</span>
-                  <select
-                    className="h-10 rounded-[16px] border border-[color:var(--border)] bg-[var(--surface)] px-3"
-                    value={swapScope}
-                    onChange={(e) => setSwapScope(e.target.value as "item" | "plan")}
-                  >
-                    <option value="item">This line item</option>
-                    <option value="plan">Everywhere in this plan</option>
-                  </select>
-                  <div className="text-xs ns-muted">
-                    Use “Everywhere” to replace all occurrences of the ingredient across the day.
+            <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-5">
+              <div className="space-y-4">
+                <div className="rounded-[18px] border border-[color:var(--border)] bg-[var(--surface-2)] p-4">
+                  <div className="mb-2 text-xs font-semibold tracking-wide ns-muted">
+                    1. Choose a substitute
                   </div>
-                </label>
+                  <div className="flex flex-col gap-2">
+                    <label className="flex flex-col gap-2">
+                      <span className="text-sm font-medium text-zinc-900">Ingredient</span>
+                      <div className="relative">
+                        <input
+                          ref={swapSearchRef}
+                          className="h-10 w-full rounded-[16px] border border-[color:var(--border)] bg-[var(--surface)] px-3 text-sm"
+                          placeholder="Start typing to find an ingredient…"
+                          value={swapQuery}
+                          onChange={(e) => {
+                            setSwapQuery(e.target.value);
+                            setSwapListOpen(true);
+                          }}
+                          aria-label="Search and select substitute ingredient"
+                        />
+                        {swapListOpen && swapOptions.length > 0 && swapQuery.trim().length > 0 && (
+                          <div
+                            className="absolute z-10 mt-1 max-h-52 w-full overflow-y-auto rounded-[16px] border border-[color:var(--border)] bg-[var(--surface)] py-1 shadow-[var(--shadow-soft)]"
+                            onMouseDown={(e) => {
+                              // Prevent input blur before click handler runs.
+                              e.preventDefault();
+                            }}
+                          >
+                            {swapOptions.map((i) => {
+                              const isSelected = i.id === swapToIngredientId;
+                              return (
+                                <button
+                                  key={i.id}
+                                  type="button"
+                                  className={clsx(
+                                    "flex w-full items-center justify-between px-3 py-2 text-left text-xs",
+                                    isSelected
+                                      ? "bg-[var(--accent-sky)]/10 text-zinc-900"
+                                      : "text-zinc-700 hover:bg-[var(--surface-2)]",
+                                  )}
+                                  onClick={() => {
+                                    setSwapToIngredientId(i.id);
+                                    setSwapQuery(i.name);
+                                    setSwapListOpen(false);
+                                  }}
+                                >
+                                  <span className="truncate font-semibold">{i.name}</span>
+                                  {isSelected && (
+                                    <span className="ml-2 shrink-0 text-[11px] ns-muted">
+                                      Selected
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                    {swapOptions.length === 0 && (
+                      <div className="text-xs ns-muted">
+                        No substitutes match your diet filters or search.
+                      </div>
+                    )}
+                  </div>
+                  {activeToIngredient && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+                      <span className="ns-muted font-semibold">Per 100g</span>
+                      <span className="rounded-full bg-[var(--surface)] px-2 py-0.5 font-medium text-zinc-900">
+                        {fmt0(activeToIngredient.macrosPer100g.calories)} kcal
+                      </span>
+                      <span className="rounded-full bg-[var(--surface)] px-2 py-0.5 font-medium text-zinc-900">
+                        Protein {fmt1(activeToIngredient.macrosPer100g.protein)}g
+                      </span>
+                      <span className="rounded-full bg-[var(--surface)] px-2 py-0.5 font-medium text-zinc-900">
+                        Carbs {fmt1(activeToIngredient.macrosPer100g.carbs)}g
+                      </span>
+                      <span className="rounded-full bg-[var(--surface)] px-2 py-0.5 font-medium text-zinc-900">
+                        Fat {fmt1(activeToIngredient.macrosPer100g.fat)}g
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-[18px] border border-[color:var(--border)] bg-[var(--surface-2)] p-4">
+                  <div className="mb-2 text-xs font-semibold tracking-wide ns-muted">
+                    2. Keep this similar
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-sm font-medium text-zinc-900">Match</span>
+                    <div className="inline-flex gap-1 rounded-full bg-[var(--surface)] p-1">
+                      {(["calories", "protein", "carbs", "fat"] as PreserveMetric[]).map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => setPreserve(m)}
+                          className={clsx(
+                            "min-w-[70px] rounded-full px-3 py-1 text-xs font-semibold",
+                            preserve === m
+                              ? "bg-[var(--accent-sky)] text-zinc-900"
+                              : "text-zinc-700 hover:bg-[var(--surface-2)]",
+                          )}
+                        >
+                          {m.charAt(0).toUpperCase() + m.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs ns-muted">
+                      We’ll adjust the amount so this stays as close as possible.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-[18px] border border-[color:var(--border)] bg-[var(--surface-2)] p-4">
+                  <div className="mb-2 text-xs font-semibold tracking-wide ns-muted">
+                    3. Where to swap
+                  </div>
+                  <fieldset className="space-y-2">
+                    <legend className="sr-only">Where to swap</legend>
+                    <label className="flex cursor-pointer items-start gap-2 rounded-[14px] border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2 text-xs">
+                      <input
+                        type="radio"
+                        className="mt-0.5"
+                        checked={swapScope === "item"}
+                        onChange={() => setSwapScope("item")}
+                      />
+                      <span>
+                        <span className="block font-semibold text-zinc-900">
+                          This ingredient in this recipe only
+                        </span>
+                        <span className="ns-muted">
+                          Swap just this line item in {activeRecipe.name}.
+                        </span>
+                      </span>
+                    </label>
+                    <label className="flex cursor-pointer items-start gap-2 rounded-[14px] border border-[color:var(--border)] bg-[var(--surface)] px-3 py-2 text-xs">
+                      <input
+                        type="radio"
+                        className="mt-0.5"
+                        checked={swapScope === "plan"}
+                        onChange={() => setSwapScope("plan")}
+                      />
+                      <span>
+                        <span className="block font-semibold text-zinc-900">
+                          This ingredient everywhere today
+                        </span>
+                        <span className="ns-muted">
+                          Replace all occurrences of {activeFromIngredient.name} across this plan.
+                        </span>
+                      </span>
+                    </label>
+                  </fieldset>
+                </div>
               </div>
 
               <div className="rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-2)] p-4">
@@ -987,23 +1086,58 @@ export function PlanClient(props: {
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-[16px] bg-[var(--surface)] p-3">
                     <div className="text-xs font-semibold ns-muted">Before</div>
-                    <div className="mt-1 text-sm text-zinc-900">
+                    <div className="mt-1 text-sm font-semibold text-zinc-900">
                       Line item: {fmt0(activeItem.grams)}g
                     </div>
-                    {activeRecipeBeforeTotals && (
-                      <div className="mt-2 text-xs text-zinc-700">
-                        Recipe total: {fmt0(activeRecipeBeforeTotals.calories)} kcal · P{" "}
-                        {fmt1(activeRecipeBeforeTotals.protein)}g · C{" "}
-                        {fmt1(activeRecipeBeforeTotals.carbs)}g · F{" "}
-                        {fmt1(activeRecipeBeforeTotals.fat)}g
+                    {activeAfterItem && (
+                      <div className="mt-1 text-xs ns-muted">
+                        {fmt0(activeItem.grams)}g → {fmt0(activeAfterItem.grams)}g
                       </div>
                     )}
-                    {activeMealBeforeTotals && (
-                      <div className="mt-2 text-xs text-zinc-700">
-                        Meal total: {fmt0(activeMealBeforeTotals.calories)} kcal · P{" "}
-                        {fmt1(activeMealBeforeTotals.protein)}g · C{" "}
-                        {fmt1(activeMealBeforeTotals.carbs)}g · F{" "}
-                        {fmt1(activeMealBeforeTotals.fat)}g
+                    {activeRecipeBeforeTotals && activeRecipeAfterTotals && (
+                      <div className="mt-2 space-y-1 text-[11px]">
+                        <div className="font-semibold ns-muted">Recipe</div>
+                        <div className="flex flex-wrap gap-1">
+                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
+                            Calories {fmt0(activeRecipeBeforeTotals.calories)} →{" "}
+                            {fmt0(activeRecipeAfterTotals.calories)}
+                          </span>
+                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
+                            P {fmt1(activeRecipeBeforeTotals.protein)}g →{" "}
+                            {fmt1(activeRecipeAfterTotals.protein)}g
+                          </span>
+                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
+                            C {fmt1(activeRecipeBeforeTotals.carbs)}g →{" "}
+                            {fmt1(activeRecipeAfterTotals.carbs)}g
+                          </span>
+                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
+                            F {fmt1(activeRecipeBeforeTotals.fat)}g →{" "}
+                            {fmt1(activeRecipeAfterTotals.fat)}g
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {activeMealBeforeTotals && activeMealAfterTotals && (
+                      <div className="mt-2 space-y-1 text-[11px]">
+                        <div className="font-semibold ns-muted">Meal</div>
+                        <div className="flex flex-wrap gap-1">
+                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
+                            Calories {fmt0(activeMealBeforeTotals.calories)} →{" "}
+                            {fmt0(activeMealAfterTotals.calories)}
+                          </span>
+                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
+                            P {fmt1(activeMealBeforeTotals.protein)}g →{" "}
+                            {fmt1(activeMealAfterTotals.protein)}g
+                          </span>
+                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
+                            C {fmt1(activeMealBeforeTotals.carbs)}g →{" "}
+                            {fmt1(activeMealAfterTotals.carbs)}g
+                          </span>
+                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
+                            F {fmt1(activeMealBeforeTotals.fat)}g →{" "}
+                            {fmt1(activeMealAfterTotals.fat)}g
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1011,10 +1145,9 @@ export function PlanClient(props: {
                   <div className="rounded-[16px] bg-[var(--surface)] p-3">
                     <div className="text-xs font-semibold ns-muted">After</div>
                     <div className="mt-1 text-sm text-zinc-900">
-                      Line item:{" "}
-                      {activeAfterItem ? `${fmt0(activeAfterItem.grams)}g` : "—"}
+                      Line item: {activeAfterItem ? `${fmt0(activeAfterItem.grams)}g` : "—"}
                     </div>
-                    {activeRecipeAfterTotals && (
+                    {activeRecipeAfterTotals && !activeRecipeBeforeTotals && (
                       <div className="mt-2 text-xs text-zinc-700">
                         Recipe total: {fmt0(activeRecipeAfterTotals.calories)} kcal · P{" "}
                         {fmt1(activeRecipeAfterTotals.protein)}g · C{" "}
@@ -1022,7 +1155,7 @@ export function PlanClient(props: {
                         {fmt1(activeRecipeAfterTotals.fat)}g
                       </div>
                     )}
-                    {activeMealAfterTotals && (
+                    {activeMealAfterTotals && !activeMealBeforeTotals && (
                       <div className="mt-2 text-xs text-zinc-700">
                         Meal total: {fmt0(activeMealAfterTotals.calories)} kcal · P{" "}
                         {fmt1(activeMealAfterTotals.protein)}g · C{" "}
@@ -1035,14 +1168,16 @@ export function PlanClient(props: {
 
                 {activeToIngredient && activeAfterItem?.grams === 0 && (
                   <p className="mt-3 text-sm text-amber-700">
-                    Can’t preserve {preserve} for this swap (missing/zero values). Try a
-                    different metric.
+                    We don’t have enough data to keep {preserve} similar for this swap. Try matching a different metric.
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-[color:var(--border)] p-5">
+            <div className="flex flex-col gap-2 border-t border-[color:var(--border)] p-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs ns-muted">
+                Press Enter to swap, or Esc to cancel.
+              </p>
               <button
                 className="ns-btn h-10 bg-[var(--surface)] px-4 text-sm text-[color:var(--foreground)] hover:bg-[var(--surface-2)]"
                 onClick={closeSwapModal}
@@ -1066,7 +1201,7 @@ export function PlanClient(props: {
                   closeSwapModal();
                 }}
               >
-                Confirm swap
+                Swap ingredient
               </button>
             </div>
           </div>
