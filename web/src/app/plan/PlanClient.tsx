@@ -523,25 +523,7 @@ export function PlanClient(props: {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/0 to-black/0 opacity-70 transition-opacity group-hover:opacity-80" />
                           <span className="sr-only">{recipe.name}</span>
-                          <div className="absolute bottom-3 left-3 inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-zinc-900">
-                            {isExpanded ? "Close" : "Open"}
-                            <span aria-hidden="true">{isExpanded ? "▴" : "▾"}</span>
-                          </div>
                         </button>
-                        {recipe.imageCredit && (
-                          <p className="mt-1.5 text-[10px] ns-muted">
-                            Photo by{" "}
-                            <a
-                              href={recipe.imageCreditUrl ?? "#"}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="underline hover:text-zinc-700"
-                            >
-                              {recipe.imageCredit}
-                            </a>{" "}
-                            on Unsplash
-                          </p>
-                        )}
                       </div>
                     );
                   };
@@ -570,9 +552,6 @@ export function PlanClient(props: {
                                 priority
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/0 to-black/0" />
-                              <div className="absolute bottom-3 left-3 inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold text-zinc-900">
-                                Close <span aria-hidden="true">▴</span>
-                              </div>
                             </div>
                           </button>
                           {expandedRecipe.imageCredit && (
