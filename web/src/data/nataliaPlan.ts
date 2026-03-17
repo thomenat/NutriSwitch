@@ -405,7 +405,10 @@ export const NATALIA_PLAN: MealPlan = {
               imageAlt: "Banana snack",
               servesText: "1 snack",
               totalTimeMinutes: 2,
-              items: [{ ingredientId: "banana-medium", grams: 90 }],
+              items: [
+                { ingredientId: "banana-medium", grams: 90 },
+                { ingredientId: "creatine", grams: 3 },
+              ],
             },
           ],
         },
@@ -435,7 +438,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "dinner-plate",
               name: "Plate dinner (grains, protein, veg)",
-              imageQuery: "vegan dinner plate with rice beans vegetables and fruit",
+              imageQuery: "vegan plate with rice, beans, tofu and vegetables",
               imageSrc: "/recipes/protein-plate.svg",
               imageAlt: "Dinner plate",
               servesText: "1 plate",
@@ -453,7 +456,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "dinner-pita-tofu",
               name: "Pita with tofu and hummus",
-              imageQuery: "pita bread stuffed with tofu and hummus",
+              imageQuery: "pita bread and hummus plate",
               imageSrc: "/recipes/simple-carbs.svg",
               imageAlt: "Pita bread with tofu and hummus",
               servesText: "1 plate",
@@ -467,9 +470,9 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "dinner-soup",
               name: "Vegetable soup + bread + tofu",
-              imageQuery: "bowl of vegetable soup with bread and tofu",
+              imageQuery: "bowl of vegetable soup with bread",
               imageSrc: "/recipes/greens.svg",
-              imageAlt: "Soup with bread and tofu",
+              imageAlt: "Soup with bread",
               servesText: "1 bowl",
               totalTimeMinutes: 25,
               items: [

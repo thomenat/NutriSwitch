@@ -149,7 +149,8 @@ export function PlanClient(props: {
   const [swapQuery, setSwapQuery] = useState<string>("");
   const [swapListOpen, setSwapListOpen] = useState<boolean>(false);
   const [swapScope, setSwapScope] = useState<"item" | "plan">("item");
-  const [preserve, setPreserve] = useState<PreserveMetric>("calories");
+  const [swapPickedExplicitly, setSwapPickedExplicitly] = useState<boolean>(false);
+  const preserve: PreserveMetric = "calories";
   const [unitPref, setUnitPref] = useState<UnitPreference>("metric");
   const [dietary, setDietary] = useState<DietaryRestriction[]>([]);
   const [showRecipeMacros, setShowRecipeMacros] = useState<Record<string, boolean>>({});
@@ -256,7 +257,7 @@ export function PlanClient(props: {
     setToast({
       id: crypto.randomUUID(),
       title: "Swap applied",
-      message: `${fromName} → ${toName}${scope === "plan" ? " (entire plan)" : ""} · preserve: ${preserve}`,
+      message: `${fromName} → ${toName}${scope === "plan" ? " (entire plan)" : ""}`,
       actionLabel: "Undo",
       onAction: () => {
         setMeals(prevMeals);
@@ -291,6 +292,7 @@ export function PlanClient(props: {
     setSwapToIngredientId(suggested);
     setSwapQuery("");
     setSwapScope("item");
+    setSwapPickedExplicitly(false);
   }
 
   function closeSwapModal() {
@@ -379,7 +381,7 @@ export function PlanClient(props: {
         setToast({
           id: toastId,
           title: "Swap applied",
-          message: `${fromName} → ${toName} (preserve: ${preserve})`,
+          message: `${fromName} → ${toName}`,
           actionLabel: "Undo",
           onAction: () => {
             setMeals((prev) => prev.map((m) => (m.id === prevMeal.id ? prevMeal : m)));
@@ -396,7 +398,6 @@ export function PlanClient(props: {
     activeMeal,
     activeMealAfter,
     activeToIngredient?.name,
-    preserve,
     swapTarget,
   ]);
 
@@ -415,8 +416,7 @@ export function PlanClient(props: {
         </div>
         <h1 className="text-3xl font-semibold tracking-tight">Demo plan</h1>
         <p className="ns-muted text-sm">
-          Swap an ingredient and we’ll recalculate grams to preserve a chosen metric
-          (default: calories).
+          Swap an ingredient and we’ll recalculate grams to keep calories as similar as possible.
         </p>
 
         {props.nutritionMeta && (
@@ -859,7 +859,7 @@ export function PlanClient(props: {
                     <span className="ns-muted">From</span>
                     <span>{activeFromIngredient.name}</span>
                     <span className="ns-muted">({fmt0(activeItem.grams)}g)</span>
-                    {activeToIngredient && (
+                    {activeToIngredient && swapPickedExplicitly && (
                       <>
                         <span className="ns-muted">→</span>
                         <span>{activeToIngredient.name}</span>
@@ -948,6 +948,7 @@ export function PlanClient(props: {
                                     setSwapToIngredientId(i.id);
                                     setSwapQuery(i.name);
                                     setSwapListOpen(false);
+                                    setSwapPickedExplicitly(true);
                                   }}
                                 >
                                   <span className="truncate font-semibold">{i.name}</span>
@@ -990,36 +991,7 @@ export function PlanClient(props: {
 
                 <div className="rounded-[18px] border border-[color:var(--border)] bg-[var(--surface-2)] p-4">
                   <div className="mb-2 text-xs font-semibold tracking-wide ns-muted">
-                    2. Keep this similar
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <span className="text-sm font-medium text-zinc-900">Match</span>
-                    <div className="inline-flex gap-1 rounded-full bg-[var(--surface)] p-1">
-                      {(["calories", "protein", "carbs", "fat"] as PreserveMetric[]).map((m) => (
-                        <button
-                          key={m}
-                          type="button"
-                          onClick={() => setPreserve(m)}
-                          className={clsx(
-                            "min-w-[70px] rounded-full px-3 py-1 text-xs font-semibold",
-                            preserve === m
-                              ? "bg-[var(--accent-sky)] text-zinc-900"
-                              : "text-zinc-700 hover:bg-[var(--surface-2)]",
-                          )}
-                        >
-                          {m.charAt(0).toUpperCase() + m.slice(1)}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-xs ns-muted">
-                      We’ll adjust the amount so this stays as close as possible.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="rounded-[18px] border border-[color:var(--border)] bg-[var(--surface-2)] p-4">
-                  <div className="mb-2 text-xs font-semibold tracking-wide ns-muted">
-                    3. Where to swap
+                    2. Where to swap
                   </div>
                   <fieldset className="space-y-2">
                     <legend className="sr-only">Where to swap</legend>
@@ -1059,95 +1031,60 @@ export function PlanClient(props: {
                 </div>
               </div>
 
-              <div className="rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-2)] p-4">
-                <h4 className="text-sm font-semibold text-zinc-900">Preview</h4>
+                <div className="rounded-[22px] border border-[color:var(--border)] bg-[var(--surface-2)] p-4">
+                  <h4 className="text-sm font-semibold text-zinc-900">Preview of this meal</h4>
 
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-[16px] bg-[var(--surface)] p-3">
-                    <div className="text-xs font-semibold ns-muted">Before</div>
-                    <div className="mt-1 text-sm font-semibold text-zinc-900">
-                      Line item: {fmt0(activeItem.grams)}g
-                    </div>
-                    {activeAfterItem && (
-                      <div className="mt-1 text-xs ns-muted">
-                        {fmt0(activeItem.grams)}g → {fmt0(activeAfterItem.grams)}g
-                      </div>
-                    )}
-                    {activeRecipeBeforeTotals && activeRecipeAfterTotals && (
-                      <div className="mt-2 space-y-1 text-[11px]">
-                        <div className="font-semibold ns-muted">Recipe</div>
-                        <div className="flex flex-wrap gap-1">
-                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
-                            Calories {fmt0(activeRecipeBeforeTotals.calories)} →{" "}
-                            {fmt0(activeRecipeAfterTotals.calories)}
-                          </span>
-                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
-                            P {fmt1(activeRecipeBeforeTotals.protein)}g →{" "}
-                            {fmt1(activeRecipeAfterTotals.protein)}g
-                          </span>
-                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
-                            C {fmt1(activeRecipeBeforeTotals.carbs)}g →{" "}
-                            {fmt1(activeRecipeAfterTotals.carbs)}g
-                          </span>
-                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
-                            F {fmt1(activeRecipeBeforeTotals.fat)}g →{" "}
-                            {fmt1(activeRecipeAfterTotals.fat)}g
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    {activeMealBeforeTotals && activeMealAfterTotals && (
-                      <div className="mt-2 space-y-1 text-[11px]">
-                        <div className="font-semibold ns-muted">Meal</div>
-                        <div className="flex flex-wrap gap-1">
-                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
-                            Calories {fmt0(activeMealBeforeTotals.calories)} →{" "}
-                            {fmt0(activeMealAfterTotals.calories)}
-                          </span>
-                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
-                            P {fmt1(activeMealBeforeTotals.protein)}g →{" "}
-                            {fmt1(activeMealAfterTotals.protein)}g
-                          </span>
-                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
-                            C {fmt1(activeMealBeforeTotals.carbs)}g →{" "}
-                            {fmt1(activeMealAfterTotals.carbs)}g
-                          </span>
-                          <span className="rounded-full bg-[var(--surface-2)] px-2 py-0.5">
-                            F {fmt1(activeMealBeforeTotals.fat)}g →{" "}
-                            {fmt1(activeMealAfterTotals.fat)}g
-                          </span>
-                        </div>
-                      </div>
+                  <div className="mt-3 rounded-[16px] bg-[var(--surface)] p-3">
+                    {swapTarget && activeMealAfter ? (
+                      (() => {
+                        const previewRecipe =
+                          activeMealAfter.recipes[swapTarget.recipeIndex] ?? null;
+                        if (!previewRecipe) return null;
+                        return (
+                          <div className="space-y-3">
+                            <div>
+                              <div className="text-xs font-semibold ns-muted">
+                                Ingredients after swap
+                              </div>
+                              <div className="mt-2 space-y-1">
+                                {previewRecipe.items.map((item, idx) => {
+                                  const ingredient = ingredientsById.get(item.ingredientId);
+                                  if (!ingredient) return null;
+                                  return (
+                                    <div
+                                      key={`${previewRecipe.id}:${idx}`}
+                                      className="flex items-center justify-between text-xs"
+                                    >
+                                      <span className="truncate text-zinc-900">
+                                        {ingredient.name}
+                                      </span>
+                                      <span className="ns-muted">{formatAmount(item.grams)}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            {activeMealAfterTotals && (
+                              <div className="pt-2 text-xs">
+                                <span className="font-semibold text-zinc-900">
+                                  Meal calories today:
+                                </span>{" "}
+                                {fmt0(activeMealAfterTotals.calories)} kcal
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      <p className="text-xs ns-muted">
+                        Choose a substitute to see how this meal will look.
+                      </p>
                     )}
                   </div>
-
-                  <div className="rounded-[16px] bg-[var(--surface)] p-3">
-                    <div className="text-xs font-semibold ns-muted">After</div>
-                    <div className="mt-1 text-sm text-zinc-900">
-                      Line item: {activeAfterItem ? `${fmt0(activeAfterItem.grams)}g` : "—"}
-                    </div>
-                    {activeRecipeAfterTotals && !activeRecipeBeforeTotals && (
-                      <div className="mt-2 text-xs text-zinc-700">
-                        Recipe total: {fmt0(activeRecipeAfterTotals.calories)} kcal · P{" "}
-                        {fmt1(activeRecipeAfterTotals.protein)}g · C{" "}
-                        {fmt1(activeRecipeAfterTotals.carbs)}g · F{" "}
-                        {fmt1(activeRecipeAfterTotals.fat)}g
-                      </div>
-                    )}
-                    {activeMealAfterTotals && !activeMealBeforeTotals && (
-                      <div className="mt-2 text-xs text-zinc-700">
-                        Meal total: {fmt0(activeMealAfterTotals.calories)} kcal · P{" "}
-                        {fmt1(activeMealAfterTotals.protein)}g · C{" "}
-                        {fmt1(activeMealAfterTotals.carbs)}g · F{" "}
-                        {fmt1(activeMealAfterTotals.fat)}g
-                      </div>
-                    )}
-                  </div>
-                </div>
 
                 {activeToIngredient && activeAfterItem?.grams === 0 && (
                   <p className="mt-3 text-sm text-amber-700">
-                    We don’t have enough data to keep {preserve} similar for this swap. Try matching a different metric.
+                    We don’t have enough data to keep calories similar for this swap.
                   </p>
                 )}
               </div>
