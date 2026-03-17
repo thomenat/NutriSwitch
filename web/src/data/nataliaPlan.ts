@@ -228,6 +228,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "breakfast-oatmeal",
               name: "Oatmeal with berries",
+              imageQuery: "vegan oatmeal bowl with berries",
               imageSrc: "/recipes/overnight-oats.svg",
               imageAlt: "Bowl of creamy oats with berries",
               servesText: "1 bowl",
@@ -242,6 +243,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "breakfast-toast-tofu-hummus",
               name: "Tofu toast with fruit",
+              imageQuery: "vegan toast with tofu and hummus",
               imageSrc: "/recipes/simple-carbs.svg",
               imageAlt: "Toast with tofu and hummus",
               servesText: "1 plate",
@@ -256,6 +258,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "breakfast-shake",
               name: "Protein shake with fruit",
+              imageQuery: "vegan protein shake with fruit",
               imageSrc: "/recipes/banana-bowl.svg",
               imageAlt: "Glass of protein shake with fruit",
               servesText: "1 shake",
@@ -269,6 +272,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "breakfast-yogurt-bowl",
               name: "Yogurt bowl with seeds and fruit",
+              imageQuery: "vegan yogurt bowl with seeds and berries",
               imageSrc: "/recipes/banana-bowl.svg",
               imageAlt: "Yogurt bowl with seeds and fruit",
               servesText: "1 bowl",
@@ -289,6 +293,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "morning-mixed-nuts",
               name: "Mixed nuts pack",
+              imageQuery: "small pack of mixed nuts",
               imageSrc: "/recipes/simple-carbs.svg",
               imageAlt: "Pack of mixed nuts",
               servesText: "1 pack",
@@ -302,37 +307,18 @@ export const NATALIA_PLAN: MealPlan = {
           name: "Lunch",
           recipes: [
             {
-              id: "lunch-grains",
-              name: "Grains and tubers",
-              imageSrc: "/recipes/carb-base.svg",
-              imageAlt: "Plate with grains and tubers",
+              id: "lunch-plate",
+              name: "Lunch plate (grains, proteins, veg, dessert)",
+              imageQuery: "vegan lunch plate with rice beans vegetables and fruit",
+              imageSrc: "/recipes/protein-plate.svg",
+              imageAlt: "Plate with grains, vegan proteins, and vegetables",
               servesText: "1 plate",
-              totalTimeMinutes: 20,
+              totalTimeMinutes: 25,
               items: [
                 { ingredientId: "brown-rice-dry", grams: 40 },
                 { ingredientId: "sweet-potato", grams: 70 },
-              ],
-            },
-            {
-              id: "lunch-protein",
-              name: "Vegan proteins",
-              imageSrc: "/recipes/protein-plate.svg",
-              imageAlt: "Plate with vegan proteins",
-              servesText: "1 plate",
-              totalTimeMinutes: 20,
-              items: [
                 { ingredientId: "beans-cooked", grams: 100 },
                 { ingredientId: "chickpeas-cooked", grams: 60 },
-              ],
-            },
-            {
-              id: "lunch-veg-salad",
-              name: "Veg and salad",
-              imageSrc: "/recipes/veg-fat.svg",
-              imageAlt: "Vegetables with olive oil",
-              servesText: "1 side",
-              totalTimeMinutes: 15,
-              items: [
                 { ingredientId: "vegetable-soup", grams: 120 },
                 { ingredientId: "olive-oil", grams: 5 },
                 { ingredientId: "tangerine", grams: 100 },
@@ -347,6 +333,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "afternoon-rice-cakes-shake",
               name: "Rice cakes + whey shake",
+              imageQuery: "rice cakes with protein shake and strawberries",
               imageSrc: "/recipes/simple-carbs.svg",
               imageAlt: "Rice cakes and protein shake",
               servesText: "1 snack",
@@ -360,6 +347,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "afternoon-mugcake",
               name: "Banana mug cake",
+              imageQuery: "banana mug cake with chocolate",
               imageSrc: "/recipes/banana-bowl.svg",
               imageAlt: "Banana mug cake",
               servesText: "1 mug",
@@ -376,6 +364,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "afternoon-overnight-oats",
               name: "Overnight oats",
+              imageQuery: "overnight oats jar with berries and chia",
               imageSrc: "/recipes/overnight-oats.svg",
               imageAlt: "Overnight oats jar",
               servesText: "1 jar",
@@ -397,6 +386,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "pre-bread-jam",
               name: "Toast with jam + creatine",
+              imageQuery: "toast with jam and creatine drink",
               imageSrc: "/recipes/simple-carbs.svg",
               imageAlt: "Toast with jam",
               servesText: "1 snack",
@@ -410,6 +400,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "pre-banana-creatine",
               name: "Banana + creatine",
+              imageQuery: "banana pre workout snack",
               imageSrc: "/recipes/banana-bowl.svg",
               imageAlt: "Banana snack",
               servesText: "1 snack",
@@ -425,6 +416,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "post-banana-vegan-protein",
               name: "Banana + vegan protein",
+              imageQuery: "banana with vegan protein shake",
               imageSrc: "/recipes/banana-bowl.svg",
               imageAlt: "Banana with protein",
               servesText: "1 snack",
@@ -443,6 +435,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "dinner-plate",
               name: "Plate dinner (grains, protein, veg)",
+              imageQuery: "vegan dinner plate with rice beans vegetables and fruit",
               imageSrc: "/recipes/protein-plate.svg",
               imageAlt: "Dinner plate",
               servesText: "1 plate",
@@ -460,6 +453,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "dinner-pita-tofu",
               name: "Pita with tofu and hummus",
+              imageQuery: "pita bread stuffed with tofu and hummus",
               imageSrc: "/recipes/simple-carbs.svg",
               imageAlt: "Pita bread with tofu and hummus",
               servesText: "1 plate",
@@ -473,6 +467,7 @@ export const NATALIA_PLAN: MealPlan = {
             {
               id: "dinner-soup",
               name: "Vegetable soup + bread + tofu",
+              imageQuery: "bowl of vegetable soup with bread and tofu",
               imageSrc: "/recipes/greens.svg",
               imageAlt: "Soup with bread and tofu",
               servesText: "1 bowl",
