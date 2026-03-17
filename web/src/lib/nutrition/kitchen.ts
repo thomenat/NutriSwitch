@@ -14,20 +14,42 @@ const KITCHEN_UNITS: KitchenMapping = {
     { label: "cup", gramsPerUnit: 80, step: 0.25 },
     { label: "tbsp", gramsPerUnit: 5, step: 0.5 },
   ],
+  "rolled-oats": [
+    { label: "cup", gramsPerUnit: 80, step: 0.25 },
+    { label: "tbsp", gramsPerUnit: 5, step: 0.5 },
+  ],
   banana: [{ label: "medium", gramsPerUnit: 118, step: 0.5 }],
+  "banana-small": [{ label: "medium", gramsPerUnit: 80, step: 0.5 }],
+  "banana-medium": [{ label: "medium", gramsPerUnit: 90, step: 0.5 }],
   "greek-yogurt-0": [
     { label: "cup", gramsPerUnit: 245, step: 0.25 },
     { label: "tbsp", gramsPerUnit: 15, step: 0.5 },
   ],
+  "natural-yogurt-vegan": [
+    { label: "cup", gramsPerUnit: 245, step: 0.25 },
+    { label: "tbsp", gramsPerUnit: 15, step: 0.5 },
+  ],
+  "plant-milk": [{ label: "cup", gramsPerUnit: 200, step: 0.25 }],
   "rice-white-cooked": [{ label: "cup", gramsPerUnit: 158, step: 0.25 }],
   "broccoli-steamed": [{ label: "cup", gramsPerUnit: 91, step: 0.25 }],
+  "vegetable-soup": [{ label: "cup", gramsPerUnit: 260, step: 0.25 }],
   "olive-oil": [
     { label: "tbsp", gramsPerUnit: 13.5, step: 0.5 },
     { label: "tsp", gramsPerUnit: 4.5, step: 0.5 },
   ],
+  "mixed-nuts-pack": [{ label: "tbsp", gramsPerUnit: 8, step: 0.5 }],
+  "chocolate-rice-cakes": [{ label: "unit", gramsPerUnit: 10, step: 1 }],
+  "seed-mix": [{ label: "tbsp", gramsPerUnit: 10, step: 0.5 }],
+  "chia-seeds": [{ label: "tbsp", gramsPerUnit: 15, step: 0.5 }],
+  melon: [{ label: "slice", gramsPerUnit: 90, step: 1 }],
+  watermelon: [{ label: "slice", gramsPerUnit: 100, step: 1 }],
+  grapes: [{ label: "unit", gramsPerUnit: 8, step: 1 }],
+  tangerine: [{ label: "unit", gramsPerUnit: 100, step: 1 }],
+  "apple-small": [{ label: "unit", gramsPerUnit: 80, step: 1 }],
   "chicken-breast-cooked": [{ label: "oz", gramsPerUnit: 28.35, step: 0.5 }],
   "salmon-cooked": [{ label: "oz", gramsPerUnit: 28.35, step: 0.5 }],
   "sweet-potato-baked": [{ label: "medium", gramsPerUnit: 130, step: 0.5 }],
+  "sweet-potato": [{ label: "medium", gramsPerUnit: 130, step: 0.5 }],
 };
 
 function roundToStep(value: number, step: number): number {
